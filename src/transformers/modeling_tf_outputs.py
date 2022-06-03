@@ -239,6 +239,28 @@ class TFBaseModelOutputWithPastAndCrossAttentions(ModelOutput):
     attentions: Optional[Tuple[tf.Tensor]] = None
     cross_attentions: Optional[Tuple[tf.Tensor]] = None
 
+    last_hidden_state_gating_block_start = None
+    last_hidden_state_gating_block_middle = None
+    last_hidden_state_gating_block_end = None
+
+    past_key_values_gating_block_start: Optional[List[tf.Tensor]] = None
+    past_key_values_gating_block_middle: Optional[List[tf.Tensor]] = None
+    past_key_values_end_gating_block_end: Optional[List[tf.Tensor]] = None
+
+    hidden_states_gating_block_start: Optional[Tuple[tf.Tensor]] = None
+    hidden_states_gating_block_middle: Optional[Tuple[tf.Tensor]] = None
+    hidden_states_gating_block_end: Optional[Tuple[tf.Tensor]] = None
+
+    attentions_gating_block_start: Optional[Tuple[tf.Tensor]] = None
+    attentions_gating_block_middle: Optional[Tuple[tf.Tensor]] = None
+    attentions_gating_block_end: Optional[Tuple[tf.Tensor]] = None
+
+    cross_attentions_gating_block_start: Optional[Tuple[tf.Tensor]] = None
+    cross_attentions_gating_block_middle: Optional[Tuple[tf.Tensor]] = None
+    cross_attentions_gating_block_end: Optional[Tuple[tf.Tensor]] = None
+
+
+
 
 @dataclass
 class TFSeq2SeqModelOutput(ModelOutput):

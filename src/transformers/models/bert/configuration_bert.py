@@ -154,6 +154,14 @@ class BertConfig(PretrainedConfig):
         position_embedding_type="absolute",
         use_cache=True,
         classifier_dropout=None,
+        gating_block_num_layers=1,
+        gating_block_end=True,
+        gating_block_end_position=9,
+        gating_block_middle=True,
+        gating_block_middle_position=6,
+        gating_block_start=True,
+        gating_block_start_position=3,
+        nm_gating=True,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -173,6 +181,21 @@ class BertConfig(PretrainedConfig):
         self.position_embedding_type = position_embedding_type
         self.use_cache = use_cache
         self.classifier_dropout = classifier_dropout
+        self.gating_block_num_layers = gating_block_num_layers
+        self.gating_block_end = gating_block_end
+        self.gating_block_end_position = gating_block_end_position # note that we start counting at 1 not 0.
+        self.gating_block_middle = gating_block_middle
+        self.gating_block_middle_position = gating_block_middle_position # note that we start counting at 1 not 0.
+        self.gating_block_start = gating_block_start
+        self.gating_block_start_position = gating_block_start_position # note that we start counting at 1 not 0.
+        self.nm_gating = nm_gating
+
+        assert self.gating_block_end_position != self.gating_block_middle_position, f"The end position and middle position" \
+                                                                                    f"can't be equal."
+        assert self.gating_block_end_position != self.gating_block_start_position, f"The end position and start position" \
+                                                                                    f"can't be equal."
+        assert self.gating_block_start_position != self.gating_block_middle_position, f"The start position and middle position" \
+                                                                                    f"can't be equal."
 
 
 class BertOnnxConfig(OnnxConfig):

@@ -532,6 +532,13 @@ class TFBertEncoder(tf.keras.layers.Layer):
         self.config = config
         self.layer = [TFBertLayer(config, name=f"layer_._{i}") for i in range(config.num_hidden_layers)]
 
+        self.gating_block_end = [TFBertLayer(config, name=f"end_gating_block_layer_._{i}")
+                                 for i in range(config.gating_block_num_layers)] if config.gating_block_end else None
+        self.gating_block_middle = [TFBertLayer(config, name=f"middle_gating_block_layer_._{i}")
+                                 for i in range(config.gating_block_num_layers)] if config.gating_block_middle else None
+        self.gating_block_start = [TFBertLayer(config, name=f"start_gating_block_layer_._{i}")
+                                 for i in range(config.gating_block_num_layers)] if config.gating_block_start else None
+
     def call(
         self,
         hidden_states: tf.Tensor,
@@ -550,15 +557,41 @@ class TFBertEncoder(tf.keras.layers.Layer):
         all_attentions = () if output_attentions else None
         all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
 
+        dict_start = None
+        dict_middle = None
+        dict_end = None
+
+        hidden_states_after_gating_start = None
+        hidden_states_after_gating_middle = None
+        hidden_states_after_gating_end = None
+
         next_decoder_cache = () if use_cache else None
         for i, layer_module in enumerate(self.layer):
+
             if output_hidden_states:
-                all_hidden_states = all_hidden_states + (hidden_states,)
+                all_hidden_states = all_hidden_states + (hidden_states,) # when i = 0 this will be the embedding layer.
 
             past_key_value = past_key_values[i] if past_key_values is not None else None
 
+            gate = False
+            input_hidden_states = hidden_states
+            if hidden_states_after_gating_start is not None:
+                input_hidden_states = hidden_states_after_gating_start
+                hidden_states_after_gating_start = None
+                gate = True
+            elif hidden_states_after_gating_middle is not None:
+                input_hidden_states = hidden_states_after_gating_middle
+                hidden_states_after_gating_middle = None
+                gate = True
+            elif hidden_states_after_gating_end is not None:
+                input_hidden_states = hidden_states_after_gating_end
+                hidden_states_after_gating_end = None
+                gate = True
+
+            if gate: input_hidden_states = tf.math.sigmoid(input_hidden_states)
+
             layer_outputs = layer_module(
-                hidden_states=hidden_states,
+                hidden_states=input_hidden_states,
                 attention_mask=attention_mask,
                 head_mask=head_mask[i],
                 encoder_hidden_states=encoder_hidden_states,
@@ -568,6 +601,46 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 training=training,
             )
             hidden_states = layer_outputs[0]
+
+            # after the, say 3rd layer, for example, we apply neuromodulation gating to the output hidden state.
+
+            # in the config class there is a clause where they can't be equal so if elif... is correct.
+            if config.gating_block_start_position == i+1: # layers start at 1 not 0; hence, why the +1.
+                dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
+                                                  hidden_states=hidden_states, attention_mask=attention_mask,
+                                                  head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
+                                                  encoder_attention_mask=encoder_attention_mask,
+                                                  past_key_value=past_key_value[i],
+                                                  output_attentions=output_attentions, training=training,
+                                                  output_hidden_states=output_hidden_states, use_cache=use_cache)
+                if "last_hidden_state_gating_block_start" not in dict_start.keys():
+                    raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_start"
+                                    f" but doesn't")
+                hidden_states_after_gating_start = dict_start["last_hidden_state_gating_block_start"]
+            elif config.gating_block_middle_position == i+1:
+                dict_middle = self.gating_block_iterate(type_="middle", gating_block=self.gating_block_middle,
+                                                  hidden_states=hidden_states, attention_mask=attention_mask,
+                                                  head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
+                                                  encoder_attention_mask=encoder_attention_mask,
+                                                  past_key_value=past_key_value[i],
+                                                  output_attentions=output_attentions, training=training,
+                                                  output_hidden_states=output_hidden_states, use_cache=use_cache)
+                if "last_hidden_state_gating_block_middle" not in dict_middle.keys():
+                    raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_middle"
+                                    f" but doesn't")
+                hidden_states_after_gating_middle = dict_middle["last_hidden_state_gating_block_middle"]
+            elif config.gating_block_end_position == i+1:
+                dict_end = self.gating_block_iterate(type_="end", gating_block=self.gating_block_end,
+                                                  hidden_states=hidden_states, attention_mask=attention_mask,
+                                                  head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
+                                                  encoder_attention_mask=encoder_attention_mask,
+                                                  past_key_value=past_key_value[i],
+                                                  output_attentions=output_attentions, training=training,
+                                                  output_hidden_states=output_hidden_states, use_cache=use_cache)
+                if "last_hidden_state_gating_block_end" not in dict_end.keys():
+                    raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_end"
+                                    f" but doesn't")
+                hidden_states_after_gating_end = dict_end["last_hidden_state_gating_block_end"]
 
             if use_cache:
                 next_decoder_cache += (layer_outputs[-1],)
@@ -592,7 +665,81 @@ class TFBertEncoder(tf.keras.layers.Layer):
             hidden_states=all_hidden_states,
             attentions=all_attentions,
             cross_attentions=all_cross_attentions,
+
+            last_hidden_state_gating_block_start=dict_start["last_hidden_state_gating_block_start"],
+            last_hidden_state_gating_block_middle = dict_middle["last_hidden_state_gating_block_middle"],
+            last_hidden_state_gating_block_end = dict_end["last_hidden_state_gating_block_end"],
+
+            past_key_values_gating_block_start=dict_start["past_key_values_gating_block_start"],
+            past_key_values_gating_block_middle=dict_middle["past_key_values_gating_block_middle"],
+            past_key_values_end_gating_block_end=dict_end["past_key_values_gating_block_end"],
+
+            hidden_states_gating_block_start=dict_start["hidden_states_gating_block_start"],
+            hidden_states_gating_block_middle=dict_middle["hidden_states_gating_block_middle"],
+            hidden_states_gating_block_end=dict_end["hidden_states_gating_block_end"],
+
+            attentions_gating_block_start=dict_start["attentions_gating_block_start"],
+            attentions_gating_block_middle=dict_middle["attentions_gating_block_middle"],
+            attentions_gating_block_end=dict_end["attentions_gating_block_end"],
+
+            cross_attentions_gating_block_start=dict_start["cross_attentions_gating_block_start"],
+            cross_attentions_gating_block_middle=dict_middle["cross_attentions_gating_block_middle"],
+            cross_attentions_gating_block_end=dict_end["cross_attentions_gating_block_end"]
         )
+
+    def gating_block_iterate(self, type_, gating_block, hidden_states, attention_mask, head_mask, encoder_hidden_states,
+                             encoder_attention_mask, past_key_value, output_attentions, training,
+                             output_hidden_states, use_cache):
+
+        assert type_ in ["start", "middle", "end"], f"The type_ of gating block must be one of either: start, " \
+                                                    f"middle, end. Got {type_}"
+
+        dict_ = {}
+
+        all_hidden_states = () if output_hidden_states else None
+        all_attentions = () if output_attentions else None
+        all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
+        next_decoder_cache = () if use_cache else None
+
+        for i, layer_module in enumerate(gating_block):
+
+            if output_hidden_states:
+                all_hidden_states = all_hidden_states + (hidden_states,)
+
+            # note needed because past_key_values[i] is already passed as input.
+            #past_key_value = past_key_values if past_key_values is not None else None
+
+            layer_outputs = layer_module(
+                hidden_states=hidden_states,
+                attention_mask=attention_mask,
+                head_mask=head_mask, # here head_mask[i] is passed as input. All gating block layers share the same head mask.
+                encoder_hidden_states=encoder_hidden_states,
+                encoder_attention_mask=encoder_attention_mask,
+                past_key_value=past_key_value,
+                output_attentions=output_attentions,
+                training=training,
+            )
+            hidden_states = layer_outputs[0]
+
+            if use_cache:
+                next_decoder_cache += (layer_outputs[-1],)
+
+            if output_attentions:
+                all_attentions = all_attentions + (layer_outputs[1],)
+                if self.config.add_cross_attention and encoder_hidden_states is not None:
+                    all_cross_attentions = all_cross_attentions + (layer_outputs[2],)
+
+        # Add last layer
+        if output_hidden_states:
+            all_hidden_states = all_hidden_states + (hidden_states,)
+
+        dict_["last_hidden_state_gating_block_"+type_] = hidden_states
+        dict_["past_key_values_gating_block_"+type_] = next_decoder_cache
+        dict_["hidden_states_gating_block_"+type_] = all_hidden_states
+        dict_["attentions_gating_block_"+type_] = all_attentions
+        dict_["cross_attentions_gating_block_"+type_] = all_cross_attentions
+
+        return dict_
 
 
 class TFBertPooler(tf.keras.layers.Layer):

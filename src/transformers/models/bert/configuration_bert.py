@@ -188,7 +188,7 @@ class BertConfig(PretrainedConfig):
         self.gating_block_middle_position = gating_block_middle_position # note that we start counting at 1 not 0.
         self.gating_block_start = gating_block_start
         self.gating_block_start_position = gating_block_start_position # note that we start counting at 1 not 0.
-        self.nm_gating = nm_gating
+        self.nm_gating = nm_gating # is True when gating occurs with the additional layers; False otherwise, i.e., no gating occurs and they act as additional layers.
 
         assert self.gating_block_end_position != self.gating_block_middle_position, f"The end position and middle position" \
                                                                                     f"can't be equal."

@@ -588,7 +588,12 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 hidden_states_after_gating_end = None
                 gate = True
 
-            if gate: input_hidden_states = tf.math.sigmoid(input_hidden_states)
+            #if gate:
+            #    if config.nm_gating:
+            #        input_hidden_states = tf.math.sigmoid(input_hidden_states) * hidden_states
+                #else:
+                #    input_hidden_states = input_hidden_states # no sigmoid is performed here as no gating occurs. Treats it as if additional layers have been performed.
+            if gate and config.nm_gating: input_hidden_states = tf.math.sigmoid(input_hidden_states) * hidden_states
 
             layer_outputs = layer_module(
                 hidden_states=input_hidden_states,
@@ -609,7 +614,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
-                                                  encoder_attention_mask=encoder_attention_mask,
+                                                   encoder_attention_mask=encoder_attention_mask,
                                                   past_key_value=past_key_value[i],
                                                   output_attentions=output_attentions, training=training,
                                                   output_hidden_states=output_hidden_states, use_cache=use_cache)

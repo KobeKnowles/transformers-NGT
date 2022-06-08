@@ -163,7 +163,7 @@ class BertConfig(PretrainedConfig):
         gating_block_start_position=3,
         nm_gating=True,
         print_test_statement_for_gating=False,
-        cls_dense_layer_number_of_options=2
+        cls_dense_layer_number_of_options=2,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)

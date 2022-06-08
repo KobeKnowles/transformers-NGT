@@ -615,7 +615,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
                                                    encoder_attention_mask=encoder_attention_mask,
-                                                  past_key_value=past_key_value[i],
+                                                  past_key_value=past_key_value,
                                                   output_attentions=output_attentions, training=training,
                                                   output_hidden_states=output_hidden_states, use_cache=use_cache)
                 if "last_hidden_state_gating_block_start" not in dict_start.keys():
@@ -627,7 +627,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
                                                   encoder_attention_mask=encoder_attention_mask,
-                                                  past_key_value=past_key_value[i],
+                                                  past_key_value=past_key_value,
                                                   output_attentions=output_attentions, training=training,
                                                   output_hidden_states=output_hidden_states, use_cache=use_cache)
                 if "last_hidden_state_gating_block_middle" not in dict_middle.keys():
@@ -639,7 +639,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
                                                   encoder_attention_mask=encoder_attention_mask,
-                                                  past_key_value=past_key_value[i],
+                                                  past_key_value=past_key_value,
                                                   output_attentions=output_attentions, training=training,
                                                   output_hidden_states=output_hidden_states, use_cache=use_cache)
                 if "last_hidden_state_gating_block_end" not in dict_end.keys():

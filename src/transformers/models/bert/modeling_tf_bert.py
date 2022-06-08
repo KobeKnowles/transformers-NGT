@@ -1213,6 +1213,7 @@ class TFBertModel(TFBertPreTrainedModel):
         super().__init__(config, *inputs, **kwargs)
 
         self.bert = TFBertMainLayer(config, name="bert")
+        self.cls_layer = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options)
 
     @unpack_inputs
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -1275,7 +1276,20 @@ class TFBertModel(TFBertPreTrainedModel):
             return_dict=return_dict,
             training=training,
         )
-        return outputs
+        # get the prediction here for the [CLS] token position.
+        print(f"last_hidden_state shape check: {outputs.last_hidden_state.shape}")
+        pred = self.cls_layer(outputs.last_hidden_state[:,0,:])
+        return outputs, pred
+
+    '''
+    return TFBaseModelOutputWithPastAndCrossAttentions(
+            last_hidden_state=hidden_states,
+            past_key_values=next_decoder_cache,
+            hidden_states=all_hidden_states,
+            attentions=all_attentions,
+            cross_attentions=all_cross_attentions
+        )
+    '''
 
     def serving_output(
         self, output: TFBaseModelOutputWithPoolingAndCrossAttentions

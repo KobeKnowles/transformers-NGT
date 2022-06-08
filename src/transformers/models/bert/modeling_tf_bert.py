@@ -669,28 +669,29 @@ class TFBertEncoder(tf.keras.layers.Layer):
             past_key_values=next_decoder_cache,
             hidden_states=all_hidden_states,
             attentions=all_attentions,
-            cross_attentions=all_cross_attentions,
+            cross_attentions=all_cross_attentions
+        ) # note: below code raised an error. Need to fix at some point but isn't necessary for what I'm doing.
 
-            last_hidden_state_gating_block_start=dict_start["last_hidden_state_gating_block_start"],
-            last_hidden_state_gating_block_middle = dict_middle["last_hidden_state_gating_block_middle"],
-            last_hidden_state_gating_block_end = dict_end["last_hidden_state_gating_block_end"],
+            #last_hidden_state_gating_block_start=dict_start["last_hidden_state_gating_block_start"],
+            #last_hidden_state_gating_block_middle = dict_middle["last_hidden_state_gating_block_middle"],
+            #last_hidden_state_gating_block_end = dict_end["last_hidden_state_gating_block_end"],
 
-            past_key_values_gating_block_start=dict_start["past_key_values_gating_block_start"],
-            past_key_values_gating_block_middle=dict_middle["past_key_values_gating_block_middle"],
-            past_key_values_end_gating_block_end=dict_end["past_key_values_gating_block_end"],
+            #past_key_values_gating_block_start=dict_start["past_key_values_gating_block_start"],
+            #past_key_values_gating_block_middle=dict_middle["past_key_values_gating_block_middle"],
+            #past_key_values_end_gating_block_end=dict_end["past_key_values_gating_block_end"],
 
-            hidden_states_gating_block_start=dict_start["hidden_states_gating_block_start"],
-            hidden_states_gating_block_middle=dict_middle["hidden_states_gating_block_middle"],
-            hidden_states_gating_block_end=dict_end["hidden_states_gating_block_end"],
+            #hidden_states_gating_block_start=dict_start["hidden_states_gating_block_start"],
+            #hidden_states_gating_block_middle=dict_middle["hidden_states_gating_block_middle"],
+            #hidden_states_gating_block_end=dict_end["hidden_states_gating_block_end"],
 
-            attentions_gating_block_start=dict_start["attentions_gating_block_start"],
-            attentions_gating_block_middle=dict_middle["attentions_gating_block_middle"],
-            attentions_gating_block_end=dict_end["attentions_gating_block_end"],
+            #attentions_gating_block_start=dict_start["attentions_gating_block_start"],
+            #attentions_gating_block_middle=dict_middle["attentions_gating_block_middle"],
+            #attentions_gating_block_end=dict_end["attentions_gating_block_end"],
 
-            cross_attentions_gating_block_start=dict_start["cross_attentions_gating_block_start"],
-            cross_attentions_gating_block_middle=dict_middle["cross_attentions_gating_block_middle"],
-            cross_attentions_gating_block_end=dict_end["cross_attentions_gating_block_end"]
-        )
+            #cross_attentions_gating_block_start=dict_start["cross_attentions_gating_block_start"],
+            #cross_attentions_gating_block_middle=dict_middle["cross_attentions_gating_block_middle"],
+            #cross_attentions_gating_block_end=dict_end["cross_attentions_gating_block_end"]
+        #)
 
     def gating_block_iterate(self, type_, gating_block, hidden_states, attention_mask, head_mask, encoder_hidden_states,
                              encoder_attention_mask, past_key_value, output_attentions, training,

@@ -1277,7 +1277,7 @@ class TFBertModel(TFBertPreTrainedModel):
             training=training,
         )
         # get the prediction here for the [CLS] token position.
-        print(f"last_hidden_state shape check: {outputs.last_hidden_state.shape}")
+        #print(f"last_hidden_state shape check: {outputs.last_hidden_state.shape}")
         pred = self.cls_layer(outputs.last_hidden_state[:,0,:])
         return outputs, pred
 

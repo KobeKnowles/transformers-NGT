@@ -568,6 +568,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
         next_decoder_cache = () if use_cache else None
         for i, layer_module in enumerate(self.layer):
 
+            if self.config.is_diagnostics: print(f"Start of the {i}-th layer.")
+
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,) # when i = 0 this will be the embedding layer.
 
@@ -576,17 +578,23 @@ class TFBertEncoder(tf.keras.layers.Layer):
             gate = False
             input_hidden_states = hidden_states
             if hidden_states_after_gating_start is not None:
-                if config.is_diagnostics: print(f"hididen_states_after_gating_start: {hidden_states_after_gating_start}\n"
+                if self.config.is_diagnostics: print(f"hididen_states_after_gating_start: {hidden_states_after_gating_start}\n"
                                                 f"i (current layer (i-1 in code) in traditional BERT): {i-1}\n"
                                                 f"is_gate: {self.config.nm_gating}")
                 input_hidden_states = hidden_states_after_gating_start
                 hidden_states_after_gating_start = None
                 gate = True
             elif hidden_states_after_gating_middle is not None:
+                if self.config.is_diagnostics: print(f"hididen_states_after_gating_middle: {hidden_states_after_gating_middle}\n"
+                                                f"i (current layer (i-1 in code) in traditional BERT): {i-1}\n"
+                                                f"is_gate: {self.config.nm_gating}")
                 input_hidden_states = hidden_states_after_gating_middle
                 hidden_states_after_gating_middle = None
                 gate = True
             elif hidden_states_after_gating_end is not None:
+                if self.config.is_diagnostics: print(f"hididen_states_after_gating_end: {hidden_states_after_gating_end}\n"
+                                                f"i (current layer (i-1 in code) in traditional BERT): {i-1}\n"
+                                                f"is_gate: {self.config.nm_gating}")
                 input_hidden_states = hidden_states_after_gating_end
                 hidden_states_after_gating_end = None
                 gate = True
@@ -596,8 +604,18 @@ class TFBertEncoder(tf.keras.layers.Layer):
             #        input_hidden_states = tf.math.sigmoid(input_hidden_states) * hidden_states
                 #else:
                 #    input_hidden_states = input_hidden_states # no sigmoid is performed here as no gating occurs. Treats it as if additional layers have been performed.
-            if gate and self.config.nm_gating: input_hidden_states = tf.math.sigmoid(input_hidden_states) * hidden_states
+            apply_sigmoid=False
+            if gate and self.config.nm_gating:
+                if self.config.is_diagnostics: print(f"gate and config.nm_gating: meaning that we actually apply gating here.")
+                input_hidden_states = tf.math.sigmoid(input_hidden_states) * hidden_states
+                apply_sigmoid = True
 
+            if self.config.is_diagnostics: print(f"apply_sigmoid: {apply_sigmoid}\n"
+                                                 f"True means that gating and sigmoid has been applied;"
+                                                 f"gate: {gate} \n"
+                                                 f"True when apply_sigmoid is False means that the extra "
+                                                 f"layers have been traversed with no gating; False here as well means "
+                                                 f"traditional BERT with no extra layers.")
             layer_outputs = layer_module(
                 hidden_states=input_hidden_states,
                 attention_mask=attention_mask,
@@ -614,7 +632,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
             # in the config class there is a clause where they can't be equal so if elif... is correct.
             if self.config.gating_block_start_position == i+1 and self.config.nm_gating: # layers start at 1 not 0; hence, why the +1.
-                if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration")
+                if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration (start position)!\n"
+                                                     f"i: {i} \t i+1: {i+1}")
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
@@ -626,7 +645,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_start"
                                     f" but doesn't")
                 hidden_states_after_gating_start = dict_start["last_hidden_state_gating_block_start"]
-            elif self.config.gating_block_middle_position == i+1:
+            elif self.config.gating_block_middle_position == i+1 and self.config.nm_gating:
+                if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration (middle position)!\n"
+                                                     f"i: {i} \t i+1: {i+1}")
                 dict_middle = self.gating_block_iterate(type_="middle", gating_block=self.gating_block_middle,
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
@@ -638,7 +659,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_middle"
                                     f" but doesn't")
                 hidden_states_after_gating_middle = dict_middle["last_hidden_state_gating_block_middle"]
-            elif self.config.gating_block_end_position == i+1:
+            elif self.config.gating_block_end_position == i+1 and self.config.nm_gating:
+                if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration (end position)!\n"
+                                                     f"i: {i} \t i+1: {i+1}")
                 dict_end = self.gating_block_iterate(type_="end", gating_block=self.gating_block_end,
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
@@ -658,6 +681,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 all_attentions = all_attentions + (layer_outputs[1],)
                 if self.config.add_cross_attention and encoder_hidden_states is not None:
                     all_cross_attentions = all_cross_attentions + (layer_outputs[2],)
+
+            if self.config.is_diagnostics: print(f"Reached end of the {i}-th traditional BERT layer.")
 
         # Add last layer
         if output_hidden_states:
@@ -712,7 +737,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         next_decoder_cache = () if use_cache else None
 
         for i, layer_module in enumerate(gating_block):
-
+            if self.config.is_diagnostics: print(f"{type_} {i}-th layer")
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 

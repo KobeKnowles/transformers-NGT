@@ -631,7 +631,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             # after the, say 3rd layer, for example, we apply neuromodulation gating to the output hidden state.
 
             # in the config class there is a clause where they can't be equal so if elif... is correct.
-            if self.config.gating_block_start_position == i+1 and self.config.nm_gating: # layers start at 1 not 0; hence, why the +1.
+            if self.config.gating_block_start_position == i+1 and self.config.gating_block_start: # layers start at 1 not 0; hence, why the +1.
                 if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration (start position)!\n"
                                                      f"i: {i} \t i+1: {i+1}")
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
@@ -645,7 +645,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_start"
                                     f" but doesn't")
                 hidden_states_after_gating_start = dict_start["last_hidden_state_gating_block_start"]
-            elif self.config.gating_block_middle_position == i+1 and self.config.nm_gating:
+            elif self.config.gating_block_middle_position == i+1 and self.config.gating_block_middle:
                 if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration (middle position)!\n"
                                                      f"i: {i} \t i+1: {i+1}")
                 dict_middle = self.gating_block_iterate(type_="middle", gating_block=self.gating_block_middle,
@@ -659,7 +659,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_middle"
                                     f" but doesn't")
                 hidden_states_after_gating_middle = dict_middle["last_hidden_state_gating_block_middle"]
-            elif self.config.gating_block_end_position == i+1 and self.config.nm_gating:
+            elif self.config.gating_block_end_position == i+1 and self.config.gating_block_end:
                 if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration (end position)!\n"
                                                      f"i: {i} \t i+1: {i+1}")
                 dict_end = self.gating_block_iterate(type_="end", gating_block=self.gating_block_end,

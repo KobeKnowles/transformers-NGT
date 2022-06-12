@@ -162,7 +162,7 @@ class BertConfig(PretrainedConfig):
         gating_block_start=True,
         gating_block_start_position=3,
         nm_gating=True,
-        print_test_statement_for_gating=False,
+        is_diagnostics=False,
         cls_dense_layer_number_of_options=2,
         **kwargs
     ):
@@ -191,7 +191,7 @@ class BertConfig(PretrainedConfig):
         self.gating_block_start = gating_block_start
         self.gating_block_start_position = gating_block_start_position # note that we start counting at 1 not 0.
         self.nm_gating = nm_gating # is True when gating occurs with the additional layers; False otherwise, i.e., no gating occurs and they act as additional layers.
-        self.print_test_statement_for_gating = print_test_statement_for_gating
+        self.is_diagnostics = is_diagnostics
         self.cls_dense_layer_number_of_options = cls_dense_layer_number_of_options
 
         assert self.gating_block_end_position != self.gating_block_middle_position, f"The end position and middle position" \

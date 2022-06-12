@@ -576,6 +576,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
             gate = False
             input_hidden_states = hidden_states
             if hidden_states_after_gating_start is not None:
+                if config.is_diagnostics: print(f"hididen_states_after_gating_start: {hidden_states_after_gating_start}\n"
+                                                f"i (current layer (i-1 in code) in traditional BERT): {i-1}\n"
+                                                f"is_gate: {self.config.nm_gating}")
                 input_hidden_states = hidden_states_after_gating_start
                 hidden_states_after_gating_start = None
                 gate = True
@@ -610,7 +613,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
             # after the, say 3rd layer, for example, we apply neuromodulation gating to the output hidden state.
 
             # in the config class there is a clause where they can't be equal so if elif... is correct.
-            if self.config.gating_block_start_position == i+1: # layers start at 1 not 0; hence, why the +1.
+            if self.config.gating_block_start_position == i+1 and self.config.nm_gating: # layers start at 1 not 0; hence, why the +1.
+                if self.config.is_diagnostics: print(f"Here is where we produce the vector to gate in the next iteration")
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
                                                   hidden_states=hidden_states, attention_mask=attention_mask,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,

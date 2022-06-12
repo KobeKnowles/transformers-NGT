@@ -1278,7 +1278,7 @@ class TFBertModel(TFBertPreTrainedModel):
         )
         # get the prediction here for the [CLS] token position.
         #print(f"last_hidden_state shape check: {outputs.last_hidden_state.shape}")
-        pred = self.cls_layer(outputs.last_hidden_state[:,0,:])
+        pred = self.cls_layer(outputs.last_hidden_state[:,0,:]) # this is the logits with no softmax
         return outputs, pred
 
     '''

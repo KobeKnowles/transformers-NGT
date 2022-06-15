@@ -164,6 +164,7 @@ class BertConfig(PretrainedConfig):
         nm_gating=True,
         is_diagnostics=False,
         cls_dense_layer_number_of_options=2,
+        max_seq_len=512,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -193,6 +194,7 @@ class BertConfig(PretrainedConfig):
         self.nm_gating = nm_gating # is True when gating occurs with the additional layers; False otherwise, i.e., no gating occurs and they act as additional layers.
         self.is_diagnostics = is_diagnostics
         self.cls_dense_layer_number_of_options = cls_dense_layer_number_of_options
+        self.max_seq_len = max_seq_len
 
         assert self.gating_block_end_position != self.gating_block_middle_position, f"The end position and middle position" \
                                                                                     f"can't be equal."

@@ -165,6 +165,7 @@ class BertConfig(PretrainedConfig):
         is_diagnostics=False,
         cls_dense_layer_number_of_options=2,
         max_seq_len=512,
+        num_aux_toks=0,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -195,6 +196,7 @@ class BertConfig(PretrainedConfig):
         self.is_diagnostics = is_diagnostics
         self.cls_dense_layer_number_of_options = cls_dense_layer_number_of_options
         self.max_seq_len = max_seq_len
+        self.num_aux_toks = num_aux_toks
 
         assert self.gating_block_end_position != self.gating_block_middle_position, f"The end position and middle position" \
                                                                                     f"can't be equal."

@@ -595,9 +595,11 @@ class TFBertEncoder(tf.keras.layers.Layer):
             #assert len(aux_attn_mask.shape) == 2, f"len(aux_attn_mask.shape): {len(aux_attn_mask.shape)}, expected: {2}"
             #assert aux_attn_mask.shape[1] == self.config.num_aux_toks, f"aux_attn_mask.shape: {aux_attn_mask.shape}\n" \
             #                                                          f"max_seq_len: {self.config.max_seq_len}"
+            print(f"attention_mask[:, :, :, :self.config.num_aux_toks]b4: {attention_mask[:, :, :, :self.config.num_aux_toks]}")
             attention_mask = attention_mask[:,:,:,self.config.num_aux_toks:]
             if self.config.is_diagnostics: print(f"attention_mask.shape: {attention_mask.shape}\n"
                                                  f"self.config.num_aux_toks: {self.config.num_aux_toks}")
+            print(f"aux_attn_mask: {aux_attn_mask}\nattention_mask[:, :, :, :self.config.num_aux_toks]): {attention_mask[:, :, :, :self.config.num_aux_toks])}")
             assert tf.reduce_all(tf.equal(aux_attn_mask, attention_mask[:, :, :, :self.config.num_aux_toks])), f"Expext this to raise an exception"
             #assert len(attention_mask.shape) == 2, f"len(attention_mask.shape): {len(attention_mask.shape)}, expected: {2}"
             #assert attention_mask.shape[1] == self.config.max_seq_len, f"attention_mask.shape: {attention_mask.shape}\n" \

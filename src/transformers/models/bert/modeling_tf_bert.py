@@ -574,6 +574,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             assert aux_tok_positions.shape[1] == self.config.num_aux_toks, f"aux_tok_positions.shape: {aux_tok_positions.shape}\n" \
                                                                            f"max_seq_len: {self.config.max_seq_len}"
             hidden_states = hidden_states[:,self.config.num_aux_toks:,:]
+            print(hidden_states.shape)
             assert len(hidden_states.shape) == 3, f"len(hidden_states.shape): {len(hidden_states.shape)}, expected: {3}"
             assert hidden_states.shape[1] == self.config.max_seq_len, f"hidden_states.shape: {hidden_states.shape}\n" \
                                                                       f"max_seq_len: {self.config.max_seq_len}"

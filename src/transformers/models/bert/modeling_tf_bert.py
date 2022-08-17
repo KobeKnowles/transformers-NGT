@@ -570,18 +570,22 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
         if self.config.num_aux_toks > 0:
             aux_tok_positions = hidden_states[:,:self.config.num_aux_toks,:]
-            assert len(aux_tok_positions.shape) == 3
-            assert aux_tok_positions.shape[1] == self.config.num_aux_toks
+            assert len(aux_tok_positions.shape) == 3, f"len(aux_tok_positions.shape): {len(aux_tok_positions.shape)}, expected: {3}"
+            assert aux_tok_positions.shape[1] == self.config.num_aux_toks, f"aux_tok_positions.shape: {aux_tok_positions.shape}\n" \
+                                                                           f"max_seq_len: {self.config.max_seq_len}"
             hidden_states = hidden_states[:,self.config.num_aux_toks:,:]
-            assert len(hidden_states.shape) == 3
-            assert hidden_states.shape[1] == self.config.max_seq_len
+            assert len(hidden_states.shape) == 3, f"len(hidden_states.shape): {len(hidden_states.shape)}, expected: {3}"
+            assert hidden_states.shape[1] == self.config.max_seq_len, f"hidden_states.shape: {hidden_states.shape}\n" \
+                                                                      f"max_seq_len: {self.config.max_seq_len}"
 
             aux_attn_mask = attention_mask[:, :self.config.num_aux_toks]
-            assert len(aux_attn_mask.shape) == 2
-            assert aux_attn_mask.shape[1] == self.config.num_aux_toks
+            assert len(aux_attn_mask.shape) == 2, f"len(aux_attn_mask.shape): {len(aux_attn_mask.shape)}, expected: {2}"
+            assert aux_attn_mask.shape[1] == self.config.num_aux_toks, f"aux_attn_mask.shape: {aux_attn_mask.shape}\n" \
+                                                                      f"max_seq_len: {self.config.max_seq_len}"
             attention_mask = attention_mask[:, self.config.num_aux_toks:]
-            assert len(attention_mask.shape) == 2
-            assert attention_mask.shape[1] == self.config.max_seq_len
+            assert len(attention_mask.shape) == 2, f"len(attention_mask.shape): {len(attention_mask.shape)}, expected: {2}"
+            assert attention_mask.shape[1] == self.config.max_seq_len, f"attention_mask.shape: {attention_mask.shape}\n" \
+                                                                       f"max_seq_len: {self.config.max_seq_len}"
 
         for i, layer_module in enumerate(self.layer):
 

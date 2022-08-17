@@ -566,6 +566,23 @@ class TFBertEncoder(tf.keras.layers.Layer):
         hidden_states_after_gating_end = None
 
         next_decoder_cache = () if use_cache else None
+
+
+        if self.config.num_aux_toks > 0:
+            aux_tok_positions = hidden_states[:,:self.config.num_aux_toks,:]
+            assert len(aux_tok_positions.shape) == 3
+            assert aux_tok_positions.shape[1] == self.config.num_aux_toks
+            hidden_states = hidden_states[:,self.config.num_aux_toks:,:]
+            assert len(hidden_states.shape) == 3
+            assert hidden_states.shape[1] == self.config.max_seq_len
+
+            aux_attn_mask = attention_mask[:, :self.config.num_aux_toks]
+            assert len(aux_attn_mask.shape) == 2
+            assert aux_attn_mask.shape[1] == self.config.num_aux_toks
+            attention_mask = attention_mask[:, self.config.num_aux_toks:]
+            assert len(attention_mask.shape) == 2
+            assert attention_mask.shape[1] == self.config.max_seq_len
+
         for i, layer_module in enumerate(self.layer):
 
             if self.config.is_diagnostics: print(f"Start of the {i+1}-th bert layer.")
@@ -619,25 +636,35 @@ class TFBertEncoder(tf.keras.layers.Layer):
             # after the, say 3rd layer, for example, we apply neuromodulation gating to the output hidden state.
 
             # in the config class there is a clause where they can't be equal so if elif... is correct.
+
             if self.config.gating_block_start_position == i+1 and self.config.gating_block_start: # layers start at 1 not 0; hence, why the +1.
                 if self.config.is_diagnostics: print(f"Traverse the start gating block with the output of the "
                                                      f"current layer ({i+1})")
+                hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
+                    hidden_states, attention_mask)
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
-                                                  hidden_states=hidden_states, attention_mask=attention_mask,
+                                                  hidden_states=hidden_state_gating_block,
+                                                  attention_mask=attention_mask_gating_block,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
-                                                   encoder_attention_mask=encoder_attention_mask,
+                                                  encoder_attention_mask=encoder_attention_mask,
                                                   past_key_value=past_key_value,
                                                   output_attentions=output_attentions, training=training,
                                                   output_hidden_states=output_hidden_states, use_cache=use_cache)
                 if "last_hidden_state_gating_block_start" not in dict_start.keys():
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_start"
                                     f" but doesn't")
-                hidden_states_after_gating_start = dict_start["last_hidden_state_gating_block_start"]
+
+                hidden_states_after_gating_start = dict_start["last_hidden_state_gating_block_start"] if self.config.num_aux_toks == 0 \
+                    else dict_start["last_hidden_state_gating_block_start"][:,self.config.num_aux_toks:,:]
+                assert hidden_states_after_gating_start.shape[1] == self.config.max_seq_len
             elif self.config.gating_block_middle_position == i+1 and self.config.gating_block_middle:
                 if self.config.is_diagnostics: print(f"Traverse the middle gating block with the output of the "
                                                      f"current layer ({i+1})")
+                hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
+                    hidden_states, attention_mask)
                 dict_middle = self.gating_block_iterate(type_="middle", gating_block=self.gating_block_middle,
-                                                  hidden_states=hidden_states, attention_mask=attention_mask,
+                                                  hidden_states=hidden_state_gating_block,
+                                                  attention_mask=attention_mask_gating_block,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
                                                   encoder_attention_mask=encoder_attention_mask,
                                                   past_key_value=past_key_value,
@@ -646,12 +673,17 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 if "last_hidden_state_gating_block_middle" not in dict_middle.keys():
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_middle"
                                     f" but doesn't")
-                hidden_states_after_gating_middle = dict_middle["last_hidden_state_gating_block_middle"]
+                hidden_states_after_gating_middle = dict_middle["last_hidden_state_gating_block_middle"] if self.config.num_aux_toks == 0 \
+                    else dict_middle["last_hidden_state_gating_block_middle"][:,self.config.num_aux_toks:,:]
+                assert hidden_states_after_gating_middle.shape[1] == self.config.max_seq_len
             elif self.config.gating_block_end_position == i+1 and self.config.gating_block_end:
                 if self.config.is_diagnostics: print(f"Traverse the end gating block with the output of the "
                                                      f"current layer ({i+1})")
+                hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
+                    hidden_states, attention_mask)
                 dict_end = self.gating_block_iterate(type_="end", gating_block=self.gating_block_end,
-                                                  hidden_states=hidden_states, attention_mask=attention_mask,
+                                                  hidden_states=hidden_state_gating_block,
+                                                  attention_mask=attention_mask_gating_block,
                                                   head_mask=head_mask[i], encoder_hidden_states=encoder_hidden_states,
                                                   encoder_attention_mask=encoder_attention_mask,
                                                   past_key_value=past_key_value,
@@ -660,7 +692,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 if "last_hidden_state_gating_block_end" not in dict_end.keys():
                     raise Exception(f"dict_start should contain the key last_hidden_state_gating_block_end"
                                     f" but doesn't")
-                hidden_states_after_gating_end = dict_end["last_hidden_state_gating_block_end"]
+                hidden_states_after_gating_end = dict_end["last_hidden_state_gating_block_end"] if self.config.num_aux_toks == 0 \
+                    else dict_end["last_hidden_state_gating_block_end"][:,self.config.num_aux_toks:,:]
+                assert hidden_states_after_gating_end.shape[1] == self.config.max_seq_len
 
             if use_cache:
                 next_decoder_cache += (layer_outputs[-1],)
@@ -709,6 +743,28 @@ class TFBertEncoder(tf.keras.layers.Layer):
             #cross_attentions_gating_block_middle=dict_middle["cross_attentions_gating_block_middle"],
             #cross_attentions_gating_block_end=dict_end["cross_attentions_gating_block_end"]
         #)
+
+    def _get_aux_hidden_and_attn_matrices(self, hidden_states, attention_mask):
+        hidden_state_gating_block = hidden_states if self.config.num_aux_toks == 0 \
+            else tf.concat([aux_tok_positions, hidden_states], axis=1)
+        if self.config.is_diagnostics:
+            if self.config.num_aux_toks == 0:
+                assert hidden_state_gating_block.shape[1] == self.config.max_seq_len
+                print(f"hidden_state_gating_block == hidden_states")
+            else:
+                assert hidden_state_gating_block.shape[1] == self.config.num_aux_toks + self.config.max_seq_len
+                print(f"aux_tok_positions;hidden_states concatenated along the sequence length direction.")
+
+        attention_mask_gating_block = attention_mask if self.config.num_aux_toks == 0 \
+            else tf.concat([aux_attn_mask, attention_mask], axis=1)
+        if self.config.is_diagnostics:
+            if self.config.num_aux_toks == 0:
+                assert attention_mask_gating_block.shape[1] == self.config.max_seq_len
+                print(f"attention_mask_gating_block == attention_mask")
+            else:
+                assert attention_mask_gating_block.shape[1] == self.config.num_aux_toks + self.config.max_seq_len
+                print(f"aux_attn_mask;attention_mask concatenated along the sequence length direction.")
+        return hidden_state_gating_block, attention_mask_gating_block
 
     def gating_block_iterate(self, type_, gating_block, hidden_states, attention_mask, head_mask, encoder_hidden_states,
                              encoder_attention_mask, past_key_value, output_attentions, training,

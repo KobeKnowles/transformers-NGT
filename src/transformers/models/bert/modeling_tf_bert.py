@@ -570,6 +570,10 @@ class TFBertEncoder(tf.keras.layers.Layer):
         print(f"REACH")
 
         if self.config.num_aux_toks > 0:
+            if self.config.is_diagnostics: print(f"hidden_states(b4).shape: {hidden_states.shape}\n"
+                                                 f"self.config.num_aux_toks: {self.config.num_aux_toks}")
+            if self.config.is_diagnostics: print(f"attention_mask(b4).shape: {attention_mask.shape}\n"
+                                                 f"self.config.num_aux_toks: {self.config.num_aux_toks}")
             aux_tok_positions = hidden_states[:,:self.config.num_aux_toks,:]
             if self.config.is_diagnostics: print(f"aux_tok_positions.shape: {aux_tok_positions.shape}\n"
                                                  f"self.config.num_aux_toks: {self.config.num_aux_toks}")

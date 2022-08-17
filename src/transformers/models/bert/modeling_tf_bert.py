@@ -604,7 +604,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             #                                                           f"max_seq_len: {self.config.max_seq_len}"
 
 
-            assert tf.reduce_all(tf.equal(x2, x[:, :2, :])).numpy().tolist()
+            #assert tf.reduce_all(tf.equal(x2, x[:, :2, :])).numpy().tolist()
 
         assert len(hidden_states.shape) == 3 and len(aux_tok_positions.shape) == 3 and len(aux_attn_mask.shape) == 4 \
                and len(attention_mask.shape) == 4

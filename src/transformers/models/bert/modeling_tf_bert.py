@@ -567,8 +567,6 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
         next_decoder_cache = () if use_cache else None
 
-        print(f"REACH")
-
         if self.config.num_aux_toks > 0:
             if self.config.is_diagnostics: print(f"hidden_states(b4).shape: {hidden_states.shape}\n"
                                                  f"self.config.num_aux_toks: {self.config.num_aux_toks}")

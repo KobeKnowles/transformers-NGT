@@ -757,7 +757,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         #)
 
     def _get_aux_hidden_and_attn_matrices(self, aux_tok_positions, hidden_states, aux_attn_mask, attention_mask):
-        assert len(hidden_states.shapes) == 3 and len(attention_mask.shape) == 4
+        #assert len(hidden_states.shapes) == 3 and len(attention_mask.shape) == 4
         hidden_state_gating_block = hidden_states if self.config.num_aux_toks == 0 \
             else tf.concat([aux_tok_positions, hidden_states], axis=1)
         if self.config.is_diagnostics:

@@ -198,6 +198,9 @@ class BertConfig(PretrainedConfig):
         self.max_seq_len = max_seq_len
         self.num_aux_toks = num_aux_toks
 
+        assert num_aux_toks < 5, f"num_aux_toks must be less than 5 because of the pretrained model build seq length " \
+                                 f"being 5. Got a value of {num_aux_toks}!"
+
         assert self.gating_block_end_position != self.gating_block_middle_position, f"The end position and middle position" \
                                                                                     f"can't be equal."
         assert self.gating_block_end_position != self.gating_block_start_position, f"The end position and start position" \

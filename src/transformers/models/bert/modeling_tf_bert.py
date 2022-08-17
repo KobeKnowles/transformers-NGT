@@ -587,18 +587,21 @@ class TFBertEncoder(tf.keras.layers.Layer):
             #assert hidden_states.shape[1] == self.config.max_seq_len, f"hidden_states.shape: {hidden_states.shape}\n" \
             #                                                          f"max_seq_len: {self.config.max_seq_len}"
 
-            aux_attn_mask = attention_mask[:, :self.config.num_aux_toks]
+            aux_attn_mask = attention_mask[:,:,:,:self.config.num_aux_toks]
             if self.config.is_diagnostics: print(f"aux_attn_mask.shape: {aux_attn_mask.shape}\n"
                                                  f"self.config.num_aux_toks: {self.config.num_aux_toks}")
             #assert len(aux_attn_mask.shape) == 2, f"len(aux_attn_mask.shape): {len(aux_attn_mask.shape)}, expected: {2}"
             #assert aux_attn_mask.shape[1] == self.config.num_aux_toks, f"aux_attn_mask.shape: {aux_attn_mask.shape}\n" \
             #                                                          f"max_seq_len: {self.config.max_seq_len}"
-            attention_mask = attention_mask[:, self.config.num_aux_toks:]
+            attention_mask = attention_mask[:,:,:,self.config.num_aux_toks:]
             if self.config.is_diagnostics: print(f"attention_mask.shape: {attention_mask.shape}\n"
                                                  f"self.config.num_aux_toks: {self.config.num_aux_toks}")
             #assert len(attention_mask.shape) == 2, f"len(attention_mask.shape): {len(attention_mask.shape)}, expected: {2}"
             #assert attention_mask.shape[1] == self.config.max_seq_len, f"attention_mask.shape: {attention_mask.shape}\n" \
             #                                                           f"max_seq_len: {self.config.max_seq_len}"
+
+        assert len(hidden_states.shape) == 3 and len(aux_tok_positions.shape) == 3 and len(aux_attn_mask.shape) == 4 \
+               and len(attention_mask.shape) == 4
 
         for i, layer_module in enumerate(self.layer):
 
@@ -658,7 +661,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 if self.config.is_diagnostics: print(f"Traverse the start gating block with the output of the "
                                                      f"current layer ({i+1})")
                 hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
-                    hidden_states, attention_mask)
+                    aux_tok_positions, hidden_states, aux_attn_mask, attention_mask)
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
                                                   hidden_states=hidden_state_gating_block,
                                                   attention_mask=attention_mask_gating_block,
@@ -678,7 +681,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 if self.config.is_diagnostics: print(f"Traverse the middle gating block with the output of the "
                                                      f"current layer ({i+1})")
                 hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
-                    hidden_states, attention_mask)
+                    aux_tok_positions, hidden_states, aux_attn_mask, attention_mask)
                 dict_middle = self.gating_block_iterate(type_="middle", gating_block=self.gating_block_middle,
                                                   hidden_states=hidden_state_gating_block,
                                                   attention_mask=attention_mask_gating_block,
@@ -697,7 +700,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 if self.config.is_diagnostics: print(f"Traverse the end gating block with the output of the "
                                                      f"current layer ({i+1})")
                 hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
-                    hidden_states, attention_mask)
+                    aux_tok_positions, hidden_states, aux_attn_mask, attention_mask)
                 dict_end = self.gating_block_iterate(type_="end", gating_block=self.gating_block_end,
                                                   hidden_states=hidden_state_gating_block,
                                                   attention_mask=attention_mask_gating_block,
@@ -761,7 +764,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
             #cross_attentions_gating_block_end=dict_end["cross_attentions_gating_block_end"]
         #)
 
-    def _get_aux_hidden_and_attn_matrices(self, hidden_states, attention_mask):
+    def _get_aux_hidden_and_attn_matrices(self, aux_tok_positions, hidden_states, aux_attn_mask, attention_mask):
+        assert len(hidden_states.shapes) == 3 and len(attention_mask.shape) == 4
         hidden_state_gating_block = hidden_states if self.config.num_aux_toks == 0 \
             else tf.concat([aux_tok_positions, hidden_states], axis=1)
         if self.config.is_diagnostics:
@@ -773,13 +777,13 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 print(f"aux_tok_positions;hidden_states concatenated along the sequence length direction.")
 
         attention_mask_gating_block = attention_mask if self.config.num_aux_toks == 0 \
-            else tf.concat([aux_attn_mask, attention_mask], axis=1)
+            else tf.concat([aux_attn_mask, attention_mask], axis=3)
         if self.config.is_diagnostics:
             if self.config.num_aux_toks == 0:
-                assert attention_mask_gating_block.shape[1] == self.config.max_seq_len
+                assert attention_mask_gating_block.shape[3] == self.config.max_seq_len
                 print(f"attention_mask_gating_block == attention_mask")
             else:
-                assert attention_mask_gating_block.shape[1] == self.config.num_aux_toks + self.config.max_seq_len
+                assert attention_mask_gating_block.shape[3] == self.config.num_aux_toks + self.config.max_seq_len
                 print(f"aux_attn_mask;attention_mask concatenated along the sequence length direction.")
         return hidden_state_gating_block, attention_mask_gating_block
 

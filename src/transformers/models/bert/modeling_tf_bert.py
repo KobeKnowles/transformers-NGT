@@ -591,8 +591,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                  f"self.config.num_aux_toks: {self.config.num_aux_toks}")
 
 
-        assert len(hidden_states.shape) == 3 and len(aux_tok_positions.shape) == 3 and len(aux_attn_mask.shape) == 4 \
-               and len(attention_mask.shape) == 4
+        if aux_tok_positions is not None and aux_attn_mask is not None:
+            assert len(hidden_states.shape) == 3 and len(aux_tok_positions.shape) == 3 and len(aux_attn_mask.shape) == 4 \
+                   and len(attention_mask.shape) == 4
 
         for i, layer_module in enumerate(self.layer):
 

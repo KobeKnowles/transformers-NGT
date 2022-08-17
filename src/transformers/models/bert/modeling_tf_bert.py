@@ -567,6 +567,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
         next_decoder_cache = () if use_cache else None
 
+        print(f"REACH")
 
         if self.config.num_aux_toks > 0:
             aux_tok_positions = hidden_states[:,:self.config.num_aux_toks,:]

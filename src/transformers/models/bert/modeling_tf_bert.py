@@ -1378,7 +1378,7 @@ class TFBertModel(TFBertPreTrainedModel):
             else:
                 print(f"Note: the ids representing the head must be between 1 and 6. \n"
                       f"Processing the \"Other\" head!")
-                nead_num = 7 # this means other.
+                head_num = 7 # this means other.
 
         outputs = self.bert(
             input_ids=input_ids,

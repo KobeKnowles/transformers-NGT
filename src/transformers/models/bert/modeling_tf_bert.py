@@ -1424,6 +1424,7 @@ class TFBertModel(TFBertPreTrainedModel):
             elif head_num == 7:
                 pred = self.headOther(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax
                 return outputs, pred
+            else: raise Exception(f"Invalid head")
 
         else: raise Exception(f"The number of auxiliary tokens cannot be negative, got {config.num_aux_toks}!")
 

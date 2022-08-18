@@ -1311,20 +1311,13 @@ class TFBertModel(TFBertPreTrainedModel):
         if config.num_aux_toks == 0:
             self.cls_layer = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options, name="cls_dense")
         elif config.num_aux_toks > 0:
-            self.head1 = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options,
-                                               input_shape=(config.hidden_size,),name="head1_dense")
-            self.head2 = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options,
-                                               input_shape=(config.hidden_size,), name="head2_dense")
-            self.head3 = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options,
-                                               input_shape=(config.hidden_size,), name="head3_dense")
-            self.head4 = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options,
-                                               input_shape=(config.hidden_size,), name="head4_dense")
-            self.head5 = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options,
-                                               input_shape=(config.hidden_size,), name="head5_dense")
-            self.head6 = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options,
-                                               input_shape=(config.hidden_size,), name="head6_dense")
-
-            self.headOther = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options, name="headOther_dense")
+            self.head1 = tf.keras.layers.Dense(3, input_shape=(config.hidden_size,),name="head1_dense")
+            self.head2 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head2_dense")
+            self.head3 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head3_dense")
+            self.head4 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head4_dense")
+            self.head5 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head5_dense")
+            self.head6 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head6_dense")
+            self.headOther = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="headOther_dense")
         else: raise Exception(f"The number of auxiliary tokens cannot be negative, got {config.num_aux_toks}!")
 
     @unpack_inputs

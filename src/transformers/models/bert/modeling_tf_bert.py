@@ -1368,12 +1368,12 @@ class TFBertModel(TFBertPreTrainedModel):
         head_num = None
         if self.config.num_aux_toks > 0:
             assert self.config.max_seq_len+self.config.num_aux_toks == input_ids.shape[1], f"{self.config.max_seq_len+self.config.num_aux_toks} {input_ids.shape[1]}"
-            if tf.squeeze(input_ids[0,0]) == 1: head_num == 1
-            elif tf.squeeze(input_ids[0,0]) == 2: head_num == 2
-            elif tf.squeeze(input_ids[0,0]) == 3: head_num == 3
-            elif tf.squeeze(input_ids[0,0]) == 4: head_num == 4
-            elif tf.squeeze(input_ids[0,0]) == 5: head_num == 5
-            elif tf.squeeze(input_ids[0,0]) == 6: head_num == 6
+            if tf.squeeze(input_ids[0,0]) == 1: head_num = 1
+            elif tf.squeeze(input_ids[0,0]) == 2: head_num = 2
+            elif tf.squeeze(input_ids[0,0]) == 3: head_num = 3
+            elif tf.squeeze(input_ids[0,0]) == 4: head_num = 4
+            elif tf.squeeze(input_ids[0,0]) == 5: head_num = 5
+            elif tf.squeeze(input_ids[0,0]) == 6: head_num = 6
             else:
                 print(f"Note: the ids representing the head must be between 1 and 6. \n"
                       f"Processing the \"Other\" head!")

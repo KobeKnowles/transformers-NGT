@@ -166,7 +166,7 @@ class BertConfig(PretrainedConfig):
         cls_dense_layer_number_of_options=2,
         max_seq_len=512,
         num_aux_toks=0,
-        multiple_heads=False
+        multiple_heads=False,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)

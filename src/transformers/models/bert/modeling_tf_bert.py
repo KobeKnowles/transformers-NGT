@@ -597,7 +597,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
         for i, layer_module in enumerate(self.layer):
 
-            if self.config.is_diagnostics: print(f"Start of the {i+1}-th bert layer.")
+            if self.config.is_diagnostics:
+                print(f"Start of the {i+1}-th bert layer.")
+                print(f"hidden_states.shape: {hidden_states.shape}")
 
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,) # when i = 0 this will be the embedding layer.
@@ -654,6 +656,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"current layer ({i+1})")
                 hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
                     aux_tok_positions, hidden_states, aux_attn_mask, attention_mask)
+                if self.config.is_diagnostics: print(f"hidden_state_gating_block.shape: {hidden_state_gating_block.shape}")
                 dict_start = self.gating_block_iterate(type_="start", gating_block=self.gating_block_start,
                                                   hidden_states=hidden_state_gating_block,
                                                   attention_mask=attention_mask_gating_block,
@@ -668,6 +671,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
                 hidden_states_after_gating_start = dict_start["last_hidden_state_gating_block_start"] if self.config.num_aux_toks == 0 \
                     else dict_start["last_hidden_state_gating_block_start"][:,self.config.num_aux_toks:,:]
+                if self.config.is_diagnostics: print(f"hidden_states_after_gating_start.shape: "
+                                                     f"{hidden_states_after_gating_start.shape}")
                 assert hidden_states_after_gating_start.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_start.shape[1]} " \
                                                                                              f"{self.config.max_seq_len}"
             elif self.config.gating_block_middle_position == i+1 and self.config.gating_block_middle:
@@ -675,6 +680,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"current layer ({i+1})")
                 hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
                     aux_tok_positions, hidden_states, aux_attn_mask, attention_mask)
+                if self.config.is_diagnostics: print(f"hidden_state_gating_block.shape: {hidden_state_gating_block.shape}")
                 dict_middle = self.gating_block_iterate(type_="middle", gating_block=self.gating_block_middle,
                                                   hidden_states=hidden_state_gating_block,
                                                   attention_mask=attention_mask_gating_block,
@@ -688,6 +694,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                     f" but doesn't")
                 hidden_states_after_gating_middle = dict_middle["last_hidden_state_gating_block_middle"] if self.config.num_aux_toks == 0 \
                     else dict_middle["last_hidden_state_gating_block_middle"][:,self.config.num_aux_toks:,:]
+                if self.config.is_diagnostics: print(f"hidden_states_after_gating_middle.shape: "
+                                                     f"{hidden_states_after_gating_middle.shape}")
                 assert hidden_states_after_gating_middle.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_middle.shape[1]} " \
                                                                                               f"{self.config.max_seq_len}"
             elif self.config.gating_block_end_position == i+1 and self.config.gating_block_end:
@@ -695,6 +703,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"current layer ({i+1})")
                 hidden_state_gating_block, attention_mask_gating_block = self._get_aux_hidden_and_attn_matrices(
                     aux_tok_positions, hidden_states, aux_attn_mask, attention_mask)
+                if self.config.is_diagnostics: print(f"hidden_state_gating_block.shape: {hidden_state_gating_block.shape}")
                 dict_end = self.gating_block_iterate(type_="end", gating_block=self.gating_block_end,
                                                   hidden_states=hidden_state_gating_block,
                                                   attention_mask=attention_mask_gating_block,
@@ -708,6 +717,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                     f" but doesn't")
                 hidden_states_after_gating_end = dict_end["last_hidden_state_gating_block_end"] if self.config.num_aux_toks == 0 \
                     else dict_end["last_hidden_state_gating_block_end"][:,self.config.num_aux_toks:,:]
+                if self.config.is_diagnostics: print(f"hidden_states_after_gating_end.shape: "
+                                                     f"{hidden_states_after_gating_end.shape}")
                 assert hidden_states_after_gating_end.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_end.shape[1]} " \
                                                                                            f"{self.config.max_seq_len}"
 
@@ -1408,28 +1419,36 @@ class TFBertModel(TFBertPreTrainedModel):
 
         if not self.config.multiple_heads:
             pred = self.cls_layer(outputs.last_hidden_state[:,0,:]) # this is the logits with no softmax or sigmoid.
+            if self.config.is_diagnostics: print(f"cls_layer\tpred.shape: {pred.shape}")
             return outputs, pred
         elif self.config.multiple_heads:
             if head_num == 1:
                 pred = self.head1(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
+                if self.config.is_diagnostics: print(f"head1\tpred.shape: {pred.shape}")
                 return outputs, pred
             elif head_num == 2:
                 pred = self.head2(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
+                if self.config.is_diagnostics: print(f"head2\tpred.shape: {pred.shape}")
                 return outputs, pred
             elif head_num == 3:
                 pred = self.head3(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
+                if self.config.is_diagnostics: print(f"head3\tpred.shape: {pred.shape}")
                 return outputs, pred
             elif head_num == 4:
                 pred = self.head4(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
+                if self.config.is_diagnostics: print(f"head4\tpred.shape: {pred.shape}")
                 return outputs, pred
             elif head_num == 5:
                 pred = self.head5(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
+                if self.config.is_diagnostics: print(f"head5\tpred.shape: {pred.shape}")
                 return outputs, pred
             elif head_num == 6:
                 pred = self.head6(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid
+                if self.config.is_diagnostics: print(f"head6\tpred.shape: {pred.shape}")
                 return outputs, pred
             else:
-                pred = self.headOther(outputs.last_hidden_state[:, 0, :])  # this is the logits with no softmax or sigmoid.
+                pred = self.headOther(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
+                if self.config.is_diagnostics: print(f"headOther\tpred.shape: {pred.shape}")
                 return outputs, pred
             #elif head_num == 7:
             #    pred = self.headOther(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.

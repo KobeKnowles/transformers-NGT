@@ -1323,7 +1323,7 @@ class TFBertModel(TFBertPreTrainedModel):
             self.cls_layer = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options, name="cls_dense")
         else:
             self.head1 = tf.keras.layers.Dense(3, input_shape=(config.hidden_size,),name="head1_dense")
-            self.head1.build((2, 24,config.hidden_size))
+            self.head1.build((2, 24, config.hidden_size)) # batch_size, seq_len, hidden_size (e.g., 1024)
             self.head2 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head2_dense")
             self.head2.build((2, 24, config.hidden_size))
             self.head3 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head3_dense")
@@ -1336,6 +1336,9 @@ class TFBertModel(TFBertPreTrainedModel):
             self.head6.build((2, 24, config.hidden_size))
             self.headOther = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="headOther_dense")
             self.headOther.build((2, 24, config.hidden_size))
+
+            if config.is_diagnostics: print(f"Head 1 weights (weights; bias): {self.head1.weights[0].shape}; "
+                                            f"{self.head1.weights[1].shape}")
 
     @unpack_inputs
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))

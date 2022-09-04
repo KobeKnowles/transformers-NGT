@@ -673,8 +673,12 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     else dict_start["last_hidden_state_gating_block_start"][:,self.config.num_aux_toks:,:]
                 if self.config.is_diagnostics: print(f"hidden_states_after_gating_start.shape: "
                                                      f"{hidden_states_after_gating_start.shape}")
-                assert hidden_states_after_gating_start.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_start.shape[1]} " \
-                                                                                             f"{self.config.max_seq_len}"
+                #assert hidden_states_after_gating_start.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_start.shape[1]} " \
+                #                                                                             f"{self.config.max_seq_len}"
+                if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
+                    print(f"Error, hidden_states_after_gating_start.shape[1] should equal self.config.max_seq_len: got "
+                          f"{hidden_states_after_gating_start.shape[1]} "
+                          f"{self.config.max_seq_len}")
             elif self.config.gating_block_middle_position == i+1 and self.config.gating_block_middle:
                 if self.config.is_diagnostics: print(f"Traverse the middle gating block with the output of the "
                                                      f"current layer ({i+1})")
@@ -696,8 +700,12 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     else dict_middle["last_hidden_state_gating_block_middle"][:,self.config.num_aux_toks:,:]
                 if self.config.is_diagnostics: print(f"hidden_states_after_gating_middle.shape: "
                                                      f"{hidden_states_after_gating_middle.shape}")
-                assert hidden_states_after_gating_middle.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_middle.shape[1]} " \
-                                                                                              f"{self.config.max_seq_len}"
+                #assert hidden_states_after_gating_middle.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_middle.shape[1]} " \
+                #                                                                              f"{self.config.max_seq_len}"
+                if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
+                    print(f"Error, hidden_states_after_gating_middle.shape[1] should equal self.config.max_seq_len: got "
+                          f"{hidden_states_after_gating_middle.shape[1]} "
+                          f"{self.config.max_seq_len}")
             elif self.config.gating_block_end_position == i+1 and self.config.gating_block_end:
                 if self.config.is_diagnostics: print(f"Traverse the end gating block with the output of the "
                                                      f"current layer ({i+1})")
@@ -719,8 +727,12 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     else dict_end["last_hidden_state_gating_block_end"][:,self.config.num_aux_toks:,:]
                 if self.config.is_diagnostics: print(f"hidden_states_after_gating_end.shape: "
                                                      f"{hidden_states_after_gating_end.shape}")
-                assert hidden_states_after_gating_end.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_end.shape[1]} " \
-                                                                                           f"{self.config.max_seq_len}"
+                #assert hidden_states_after_gating_end.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_end.shape[1]} " \
+                #                                                                           f"{self.config.max_seq_len}"
+                if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
+                    print(f"Error, hidden_states_after_gating_end.shape[1] should equal self.config.max_seq_len: got "
+                          f"{hidden_states_after_gating_end.shape[1]} "
+                          f"{self.config.max_seq_len}")
 
             if use_cache:
                 next_decoder_cache += (layer_outputs[-1],)

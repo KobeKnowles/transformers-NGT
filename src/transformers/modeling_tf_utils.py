@@ -608,9 +608,9 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     print(f"weight_name: {weight_name}")
                     # TF names always start with the model name so we ignore it
                     name = "/".join(weight_name.split("/")[1:])
-                    #if name == "":
-                    #    print("name is an empty string")
-                    #    name = weight_name
+                    if name == "":
+                        print("name is an empty string")
+                        name = layer.name+"/"+weight_name
                     #print(f"name: {name}")
 
                     if _prefix is not None:
@@ -636,13 +636,16 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                         )
                     else:
                         symbolic_weight_name = "/".join(symbolic_weight.name.split("/")[1:])
+                    if symbolic_weight_name == "":
+                        print("symbolic_weight_name is an empty string")
+                        name = layer.name+"/"+symbolic_weight_name
 
                     # here we check if the current weight is among the weights from the H5 file
                     # If yes, get the weight_value of the corresponding weight from the H5 file
                     # If not, make the value to None
-                    #print(f"\nsymbolic_weight_name: {symbolic_weight_name}")
+                    print(f"\nsymbolic_weight_name: {symbolic_weight_name}")
                     saved_weight_value = saved_weights.get(symbolic_weight_name, None)
-                    #print(f"saved_weight_value: {saved_weight_value}\n")
+                    print(f"saved_weight_value: {saved_weight_value}\n")
 
                     # Add the updated name to the final list for computing missing/unexpected values
                     symbolic_weights_names.add(symbolic_weight_name)

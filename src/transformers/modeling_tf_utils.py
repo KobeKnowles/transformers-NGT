@@ -585,12 +585,13 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
 
         # Compute missing and unexpected sub layers
         # Store the weights in list of tuples that looks like [(weight_object, value_of_weight),...]
+        print(f"layer names: {[layer.name for layer in model.layers]}")
         for layer in model.layers:
-            print(f"layer in model.layers: {layer}")
+            #print(f"layer in model.layers: {layer}")
             print(f"layer.name: {layer.name}")
             # if layer_name from the H5 file belongs to the layers from the instantiated model
             if layer.name in saved_h5_model_layers_name:
-                print(f"layer.name in saved_h5_model_layers_name")
+                print(f"{layer.name} in saved_h5_model_layers_name")
                 # Get the H5 layer object from its name
                 h5_layer_object = f[layer.name]
                 #print(f"h5_layer_object: {h5_layer_object}")
@@ -633,9 +634,9 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     # here we check if the current weight is among the weights from the H5 file
                     # If yes, get the weight_value of the corresponding weight from the H5 file
                     # If not, make the value to None
-                    print(f"\nsymbolic_weight_name: {symbolic_weight_name}")
+                    #print(f"\nsymbolic_weight_name: {symbolic_weight_name}")
                     saved_weight_value = saved_weights.get(symbolic_weight_name, None)
-                    print(f"saved_weight_value: {saved_weight_value}\n")
+                    #print(f"saved_weight_value: {saved_weight_value}\n")
 
                     # Add the updated name to the final list for computing missing/unexpected values
                     symbolic_weights_names.add(symbolic_weight_name)

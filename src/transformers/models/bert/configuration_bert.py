@@ -167,6 +167,7 @@ class BertConfig(PretrainedConfig):
         max_seq_len=512,
         num_aux_toks=0,
         multiple_heads=False,
+        build_heads=True
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -199,6 +200,7 @@ class BertConfig(PretrainedConfig):
         self.max_seq_len = max_seq_len
         self.num_aux_toks = num_aux_toks
         self.multiple_heads = multiple_heads
+        self.build_heads = build_heads
 
         assert num_aux_toks < 5, f"num_aux_toks must be less than 5 because of the pretrained model build seq length " \
                                  f"being 5. Got a value of {num_aux_toks}!"

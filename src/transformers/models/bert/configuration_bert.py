@@ -167,7 +167,7 @@ class BertConfig(PretrainedConfig):
         max_seq_len=512,
         num_aux_toks=0,
         multiple_heads=False,
-        build_heads=True
+        build_heads=True,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)

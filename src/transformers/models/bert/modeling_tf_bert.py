@@ -1335,26 +1335,26 @@ class TFBertModel(TFBertPreTrainedModel):
             self.cls_layer = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options, name="cls_dense")
         else: #input_shape=(config.hidden_size,),
             self.head1 = tf.keras.layers.Dense(3, input_shape=(config.hidden_size,), name="head1_dense")
-            if config.build_heads:
-                self.head1.build((2, 24, config.hidden_size)) # batch_size, seq_len, hidden_size (e.g., 1024)
+            #if config.build_heads:
+            self.head1.build((2, 24, config.hidden_size)) # batch_size, seq_len, hidden_size (e.g., 1024)
             self.head2 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head2_dense")
-            if config.build_heads:
-                self.head2.build((2, 24, config.hidden_size))
+            #if config.build_heads:
+            self.head2.build((2, 24, config.hidden_size))
             self.head3 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head3_dense")
-            if config.build_heads:
-                self.head3.build((2, 24, config.hidden_size))
+            #if config.build_heads:
+            self.head3.build((2, 24, config.hidden_size))
             self.head4 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head4_dense")
-            if config.build_heads:
-                self.head4.build((2, 24, config.hidden_size))
+            #if config.build_heads:
+            self.head4.build((2, 24, config.hidden_size))
             self.head5 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head5_dense")
-            if config.build_heads:
-                self.head5.build((2, 24, config.hidden_size))
+            #if config.build_heads:
+            self.head5.build((2, 24, config.hidden_size))
             self.head6 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,),name="head6_dense")
-            if config.build_heads:
-                self.head6.build((2, 24, config.hidden_size))
+            #if config.build_heads:
+            self.head6.build((2, 24, config.hidden_size))
             self.headOther = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="headOther_dense")
-            if config.build_heads:
-                self.headOther.build((2, 24, config.hidden_size))
+            #if config.build_heads:
+            self.headOther.build((2, 24, config.hidden_size))
 
             if config.is_diagnostics and config.build_heads: print(f"Head 1 weights (weights; bias): {self.head1.weights[0].shape}; "
                                             f"{self.head1.weights[1].shape}")

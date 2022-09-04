@@ -610,12 +610,13 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     if _prefix is not None:
                         print(f"_prefix is not None")
                         name = _prefix + "/" + name
-
+                    print(f"name: {name}")
                     saved_weights[name] = np.asarray(h5_layer_object[weight_name])
                     print(f"np.asarray(h5_layer_object[weight_name]): {np.asarray(h5_layer_object[weight_name])}")
 
                     # Add the updated name to the final list for computing missing/unexpected values
                     saved_weight_names_set.add(name)
+                print(f"saved_weight_names_set: {saved_weight_names_set}")
 
                 # Loop over each weights from the instantiated model and compare with the weights from the H5 file
                 for symbolic_weight in symbolic_weights:

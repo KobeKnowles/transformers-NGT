@@ -1344,7 +1344,7 @@ class TFBertModel(TFBertPreTrainedModel):
             if config.build_heads:
                 self.headOther.build((2, 24, config.hidden_size))
 
-            if config.is_diagnostics: print(f"Head 1 weights (weights; bias): {self.head1.weights[0].shape}; "
+            if config.is_diagnostics and config.build_heads: print(f"Head 1 weights (weights; bias): {self.head1.weights[0].shape}; "
                                             f"{self.head1.weights[1].shape}")
 
     @unpack_inputs

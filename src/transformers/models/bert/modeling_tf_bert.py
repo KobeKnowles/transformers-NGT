@@ -1341,7 +1341,7 @@ class TFBertModel(TFBertPreTrainedModel):
             self.head5 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head5_dense")
             self.head6 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,),name="head6_dense")
             self.headOther = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="headOther_dense")
-            
+
             if config.build_heads:
                 self.head1.build((2, 24, config.hidden_size))  # batch_size, seq_len, hidden_size (e.g., 1024)
                 self.head2.build((2, 24, config.hidden_size))

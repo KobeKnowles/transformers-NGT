@@ -611,6 +611,7 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     if _prefix is not None:
                         print(f"_prefix is not None")
                         name = _prefix + "/" + name
+                    if name is None: print("name is None!!!")
                     print(f"name: {name}")
                     saved_weights[name] = np.asarray(h5_layer_object[weight_name])
                     #print(f"np.asarray(h5_layer_object[weight_name]): {np.asarray(h5_layer_object[weight_name])}")

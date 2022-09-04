@@ -603,7 +603,7 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                 # Create a dict from the H5 saved model that looks like {"weight_name": weight_value}
                 # And a set with only the names
                 for weight_name in hdf5_format.load_attributes_from_hdf5_group(h5_layer_object, "weight_names"):
-                    #print(f"weight_name: {weight_name}")
+                    print(f"weight_name: {weight_name}")
                     # TF names always start with the model name so we ignore it
                     name = "/".join(weight_name.split("/")[1:])
                     #print(f"name: {name}")

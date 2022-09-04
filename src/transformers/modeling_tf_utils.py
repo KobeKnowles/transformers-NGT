@@ -597,6 +597,8 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                 #print(f"h5_layer_object: {h5_layer_object}")
                 # Get all the weights as a list from the layer object
                 symbolic_weights = layer.trainable_weights + layer.non_trainable_weights
+                for symbolic_weight in symbolic_weights:
+                    print(f"symbolic_weight.name: {symbolic_weight.name}")
                 #print(f"symbolic_weights: {symbolic_weights}")
                 saved_weights = {}
 
@@ -606,9 +608,9 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     print(f"weight_name: {weight_name}")
                     # TF names always start with the model name so we ignore it
                     name = "/".join(weight_name.split("/")[1:])
-                    if name == "":
-                        print("name is an empty string")
-                        name = weight_name
+                    #if name == "":
+                    #    print("name is an empty string")
+                    #    name = weight_name
                     #print(f"name: {name}")
 
                     if _prefix is not None:

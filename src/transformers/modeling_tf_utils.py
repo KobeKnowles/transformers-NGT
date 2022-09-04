@@ -593,30 +593,30 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                 print(f"layer.name in saved_h5_model_layers_name")
                 # Get the H5 layer object from its name
                 h5_layer_object = f[layer.name]
-                print(f"h5_layer_object: {h5_layer_object}")
+                #print(f"h5_layer_object: {h5_layer_object}")
                 # Get all the weights as a list from the layer object
                 symbolic_weights = layer.trainable_weights + layer.non_trainable_weights
-                print(f"symbolic_weights: {symbolic_weights}")
+                #print(f"symbolic_weights: {symbolic_weights}")
                 saved_weights = {}
 
                 # Create a dict from the H5 saved model that looks like {"weight_name": weight_value}
                 # And a set with only the names
                 for weight_name in hdf5_format.load_attributes_from_hdf5_group(h5_layer_object, "weight_names"):
-                    print(f"weight_name: {weight_name}")
+                    #print(f"weight_name: {weight_name}")
                     # TF names always start with the model name so we ignore it
                     name = "/".join(weight_name.split("/")[1:])
-                    print(f"name: {name}")
+                    #print(f"name: {name}")
 
                     if _prefix is not None:
                         print(f"_prefix is not None")
                         name = _prefix + "/" + name
                     print(f"name: {name}")
                     saved_weights[name] = np.asarray(h5_layer_object[weight_name])
-                    print(f"np.asarray(h5_layer_object[weight_name]): {np.asarray(h5_layer_object[weight_name])}")
+                    #print(f"np.asarray(h5_layer_object[weight_name]): {np.asarray(h5_layer_object[weight_name])}")
 
                     # Add the updated name to the final list for computing missing/unexpected values
                     saved_weight_names_set.add(name)
-                print(f"saved_weight_names_set: {saved_weight_names_set}")
+                #print(f"saved_weight_names_set: {saved_weight_names_set}")
 
                 # Loop over each weights from the instantiated model and compare with the weights from the H5 file
                 for symbolic_weight in symbolic_weights:
@@ -633,9 +633,9 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     # here we check if the current weight is among the weights from the H5 file
                     # If yes, get the weight_value of the corresponding weight from the H5 file
                     # If not, make the value to None
-                    print(f"\n\n\nsymbolic_weight_name: {symbolic_weight_name}")
+                    print(f"\nsymbolic_weight_name: {symbolic_weight_name}")
                     saved_weight_value = saved_weights.get(symbolic_weight_name, None)
-                    print(f"saved_weight_value: {saved_weight_value}\n\n\n")
+                    print(f"saved_weight_value: {saved_weight_value}\n")
 
                     # Add the updated name to the final list for computing missing/unexpected values
                     symbolic_weights_names.add(symbolic_weight_name)
@@ -643,9 +643,10 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     # If the current weight is found
                     if saved_weight_value is not None:
                         # Check if the shape of the current weight and the one from the H5 file are different
-                        print(f"K.int_shape(symbolic_weight) != saved_weight_value.shape"
-                              f"{K.int_shape(symbolic_weight)} {saved_weight_value.shape}")
+
                         if K.int_shape(symbolic_weight) != saved_weight_value.shape:
+                            print(f"K.int_shape(symbolic_weight) != saved_weight_value.shape"
+                                  f"{K.int_shape(symbolic_weight)} {saved_weight_value.shape}")
                             # If yes we reshape the weight from the H5 file accordingly to the current weight
                             # If the two shapes are not compatible we raise an issue
                             try:

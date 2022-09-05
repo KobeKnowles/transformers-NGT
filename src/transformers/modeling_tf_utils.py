@@ -610,7 +610,7 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                     name = "/".join(weight_name.split("/")[1:])
                     if name == "":
                         print("name is an empty string")
-                        name = layer.name+"/"+weight_name
+                        name = layer.name#+"/"+weight_name
                     #print(f"name: {name}")
 
                     if _prefix is not None:
@@ -638,7 +638,7 @@ def load_tf_weights(model, resolved_archive_file, ignore_mismatched_sizes=False,
                         symbolic_weight_name = "/".join(symbolic_weight.name.split("/")[1:])
                     if symbolic_weight_name == "":
                         print("symbolic_weight_name is an empty string")
-                        name = layer.name+"/"+symbolic_weight_name
+                        name = layer.name#+"/"+symbolic_weight_name
 
                     # here we check if the current weight is among the weights from the H5 file
                     # If yes, get the weight_value of the corresponding weight from the H5 file

@@ -1331,28 +1331,7 @@ class TFBertModel(TFBertPreTrainedModel):
         super().__init__(config, *inputs, **kwargs)
 
         self.bert = TFBertMainLayer(config, name="bert")
-        if not config.multiple_heads:
-            self.cls_layer = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options, name="cls_dense")
-        else: #input_shape=(config.hidden_size,),
-            self.head1 = tf.keras.layers.Dense(3, input_shape=(config.hidden_size,), name="head1_dense")
-            self.head2 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head2_dense")
-            self.head3 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head3_dense")
-            self.head4 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head4_dense")
-            self.head5 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="head5_dense")
-            self.head6 = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,),name="head6_dense")
-            self.headOther = tf.keras.layers.Dense(1, input_shape=(config.hidden_size,), name="headOther_dense")
-
-            if config.build_heads:
-                self.head1.build((2, 24, config.hidden_size))  # batch_size, seq_len, hidden_size (e.g., 1024)
-                self.head2.build((2, 24, config.hidden_size))
-                self.head3.build((2, 24, config.hidden_size))
-                self.head4.build((2, 24, config.hidden_size))
-                self.head5.build((2, 24, config.hidden_size))
-                self.head6.build((2, 24, config.hidden_size))
-                self.headOther.build((2, 24, config.hidden_size))
-
-            if config.is_diagnostics and config.build_heads: print(f"Head 1 weights (weights; bias): {self.head1.weights[0].shape}; "
-                                            f"{self.head1.weights[1].shape}")
+        self.cls_layer = tf.keras.layers.Dense(config.cls_dense_layer_number_of_options, name="cls_dense")
 
     @unpack_inputs
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -1400,19 +1379,6 @@ class TFBertModel(TFBertPreTrainedModel):
             If set to `True`, `past_key_values` key value states are returned and can be used to speed up decoding (see
             `past_key_values`). Set to `False` during training, `True` during generation
         """
-        #head_num = None
-        #if self.config.num_aux_toks > 0:
-        #    assert self.config.max_seq_len+self.config.num_aux_toks == input_ids.shape[1], f"{self.config.max_seq_len+self.config.num_aux_toks} {input_ids.shape[1]}"
-        #    if tf.squeeze(input_ids[0,0]) == 1: head_num = 1
-        #    elif tf.squeeze(input_ids[0,0]) == 2: head_num = 2
-        #    elif tf.squeeze(input_ids[0,0]) == 3: head_num = 3
-        #    elif tf.squeeze(input_ids[0,0]) == 4: head_num = 4
-        #    elif tf.squeeze(input_ids[0,0]) == 5: head_num = 5
-        #    elif tf.squeeze(input_ids[0,0]) == 6: head_num = 6
-        #    else:
-        #        print(f"Note: the ids representing the head must be between 1 and 6. \n"
-        #              f"Processing the \"Other\" head!")
-        #        head_num = 7 # this means other.
 
         outputs = self.bert(
             input_ids=input_ids,
@@ -1437,46 +1403,11 @@ class TFBertModel(TFBertPreTrainedModel):
                   f" {self.config.max_seq_len}")
             #assert outputs.last_hidden_state.shape[1] == self.config.max_seq_len, f"{outputs.last_hidden_state.shape[1]} {self.config.max_seq_len}"
 
-        if not self.config.multiple_heads:
-            pred = self.cls_layer(outputs.last_hidden_state[:,0,:]) # this is the logits with no softmax or sigmoid.
-            if self.config.is_diagnostics: print(f"cls_layer\tpred.shape: {pred.shape}")
-            return outputs, pred
-        elif self.config.multiple_heads:
-            if head_num == 1:
-                pred = self.head1(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-                if self.config.is_diagnostics: print(f"head1\tpred.shape: {pred.shape}")
-                return outputs, pred
-            elif head_num == 2:
-                pred = self.head2(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-                if self.config.is_diagnostics: print(f"head2\tpred.shape: {pred.shape}")
-                return outputs, pred
-            elif head_num == 3:
-                pred = self.head3(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-                if self.config.is_diagnostics: print(f"head3\tpred.shape: {pred.shape}")
-                return outputs, pred
-            elif head_num == 4:
-                pred = self.head4(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-                if self.config.is_diagnostics: print(f"head4\tpred.shape: {pred.shape}")
-                return outputs, pred
-            elif head_num == 5:
-                pred = self.head5(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-                if self.config.is_diagnostics: print(f"head5\tpred.shape: {pred.shape}")
-                return outputs, pred
-            elif head_num == 6:
-                pred = self.head6(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid
-                if self.config.is_diagnostics: print(f"head6\tpred.shape: {pred.shape}")
-                return outputs, pred
-            else:
-                pred = self.headOther(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-                if self.config.is_diagnostics: print(f"headOther\tpred.shape: {pred.shape}")
-                return outputs, pred
-            #elif head_num == 7:
-            #    pred = self.headOther(outputs.last_hidden_state[:,0,:])  # this is the logits with no softmax or sigmoid.
-            #    return outputs, pred
-            #else: raise Exception(f"Invalid head")
 
+        pred = self.cls_layer(outputs.last_hidden_state[:,0,:]) # this is the logits with no softmax or sigmoid.
+        if self.config.is_diagnostics: print(f"cls_layer\tpred.shape: {pred.shape}")
+        return outputs, pred
 
-        else: raise Exception(f"The number of auxiliary tokens cannot be negative, got {config.num_aux_toks}!")
 
     '''
     return TFBaseModelOutputWithPastAndCrossAttentions(

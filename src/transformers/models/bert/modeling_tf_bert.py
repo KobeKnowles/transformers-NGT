@@ -676,7 +676,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"{hidden_states_after_gating_start.shape}")
                 #assert hidden_states_after_gating_start.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_start.shape[1]} " \
                 #                                                                             f"{self.config.max_seq_len}"
-                if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
+                if not hidden_states_after_gating_start.shape[1] == self.config.max_seq_len:
                     print(f"Error, hidden_states_after_gating_start.shape[1] should equal self.config.max_seq_len: got "
                           f"{hidden_states_after_gating_start.shape[1]} "
                           f"{self.config.max_seq_len}")
@@ -703,7 +703,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"{hidden_states_after_gating_middle.shape}")
                 #assert hidden_states_after_gating_middle.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_middle.shape[1]} " \
                 #                                                                              f"{self.config.max_seq_len}"
-                if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
+                if not hidden_states_after_gating_middle.shape[1] == self.config.max_seq_len:
                     print(f"Error, hidden_states_after_gating_middle.shape[1] should equal self.config.max_seq_len: got "
                           f"{hidden_states_after_gating_middle.shape[1]} "
                           f"{self.config.max_seq_len}")
@@ -795,7 +795,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         else:
             assert hidden_state_gating_block.shape[1] == self.config.max_seq_len+self.config.num_aux_toks, f"{hidden_state_gating_block.shape[1]} " \
                                                                                   f"{self.config.max_seq_len+self.config.num_aux_toks}"
-            if self.config.is_diagnostics: print(f"aux_tok_positions; hidden_states concatenated along the sequence length direction.")
+            if self.config.is_diagnostics: print(f"aux_tok_positions; hidden_states concatenated along the sequence length dimension.")
 
         attention_mask_gating_block = attention_mask if self.config.num_aux_toks == 0 \
             else tf.concat([aux_attn_mask, attention_mask], axis=3)
@@ -807,7 +807,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         else:
             assert attention_mask_gating_block.shape[3] == self.config.max_seq_len+self.config.num_aux_toks, f"{attention_mask_gating_block.shape[3]} " \
                                                                                     f"{self.config.max_seq_len+self.config.num_aux_toks}"
-            if self.config.is_diagnostics: print(f"aux_attn_mask; attention_mask concatenated along the sequence length direction.")
+            if self.config.is_diagnostics: print(f"aux_attn_mask; attention_mask concatenated along the sequence length dimension.")
         return hidden_state_gating_block, attention_mask_gating_block
 
     def gating_block_iterate(self, type_, gating_block, hidden_states, attention_mask, head_mask, encoder_hidden_states,

@@ -166,6 +166,10 @@ class BertConfig(PretrainedConfig):
         cls_dense_layer_number_of_options=2,
         max_seq_len=512,
         num_aux_toks=0,
+        is_global_probe_dataset=False,
+        global_filepath="",
+        is_qualitative_probe=False,
+        qualitative_filepath="",
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -197,6 +201,10 @@ class BertConfig(PretrainedConfig):
         self.cls_dense_layer_number_of_options = cls_dense_layer_number_of_options
         self.max_seq_len = max_seq_len
         self.num_aux_toks = num_aux_toks
+        self.is_global_probe_dataset = is_global_probe_dataset
+        self.global_filepath = global_filepath
+        self.is_qualitative_probe = is_qualitative_probe
+        self.qualitative_filepath = qualitative_filepath
 
         assert num_aux_toks < 5, f"num_aux_toks must be less than 5 because of the pretrained model build seq length " \
                                  f"being 5. Got a value of {num_aux_toks}!"
@@ -207,6 +215,9 @@ class BertConfig(PretrainedConfig):
                                                                                     f"can't be equal."
         assert self.gating_block_start_position != self.gating_block_middle_position, f"The start position and middle position" \
                                                                                     f"can't be equal."
+
+        assert not (self.is_global_probe_dataset and self.is_qualitative_probe), f"Both of is_global_probe_dataset and " \
+                                                                               f"is_qualative_probe should not be True"
 
 
 class BertOnnxConfig(OnnxConfig):

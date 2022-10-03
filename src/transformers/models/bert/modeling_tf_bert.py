@@ -539,6 +539,241 @@ class TFBertEncoder(tf.keras.layers.Layer):
         self.gating_block_start = [TFBertLayer(config, name=f"start_gating_block_layer_._{i}")
                                  for i in range(config.gating_block_num_layers)] if config.gating_block_start else None
 
+        self.interval_dict, self.interval_dict_list, self.probe_dataset_filepath = None, None, None
+        if self.config.is_global_probe_dataset:
+            self.interval_dict = {"[0-0.05)":   0, "[0.05-0.1)": 0, "[0.1-0.15)": 0, "[0.15-0.2)": 0,
+                                  "[0.2-0.25)": 0, "[0.25-0.3)": 0, "[0.3-0.35)": 0, "[0.35-0.4)": 0,
+                                  "[0.4-0.45)": 0, "[0.45-0.5)": 0, "[0.5-0.55)": 0, "[0.55-0.6)": 0,
+                                  "[0.6-0.65)": 0, "[0.65-0.7)": 0, "[0.7-0.75)": 0, "[0.75-0.8)": 0,
+                                  "[0.8-0.85)": 0, "[0.85-0.9)": 0, "[0.9-0.95)": 0, "[0.95-1]":   0,
+                                  "Counter":0}
+            self.probe_dataset_filepath = self.config.global_filepath
+        if self.config.is_qualitative_probe:
+            print(f"Note that for a qualative probe only one example at a time is supported (i.e., a batch size of 1).")
+            self.interval_dict_list = [{"[0-0.05)":   0, "[0.05-0.1)": 0, "[0.1-0.15)": 0, "[0.15-0.2)": 0,
+                                        "[0.2-0.25)": 0, "[0.25-0.3)": 0, "[0.3-0.35)": 0, "[0.35-0.4)": 0,
+                                        "[0.4-0.45)": 0, "[0.45-0.5)": 0, "[0.5-0.55)": 0, "[0.55-0.6)": 0,
+                                        "[0.6-0.65)": 0, "[0.65-0.7)": 0, "[0.7-0.75)": 0, "[0.75-0.8)": 0,
+                                        "[0.8-0.85)": 0, "[0.85-0.9)": 0, "[0.9-0.95)": 0, "[0.95-1]":   0,
+                                        "Counter":0} for _ in range(self.config.max_seq_len)]
+            # note that the aux tok positions are not included in this. Also, that some positions are PAD tokens that won't be filled in.
+            self.probe_dataset_filepath = self.config.qualitative_filepath
+
+    def _get_global_probe_data(self, nm_hidden_states):
+        # nm_hidden_states.shape == (batch_size, seq_len, hdim)
+        x = nm_hidden_states # this is for readability below
+
+        assert len(x.shape) == 3, f"x should have 3 dimensions, got {len(x.shape)}!"
+
+        interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
+                                                               tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval10 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.05),
+                                                               tf.less(x, 0.1)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval15 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.1),
+                                                               tf.less(x, 0.15)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval20 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.15),
+                                                               tf.less(x, 0.2)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval25 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.2),
+                                                               tf.less(x, 0.25)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval30 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.25),
+                                                               tf.less(x, 0.3)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval35 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.3),
+                                                               tf.less(x, 0.35)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval40 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.35),
+                                                               tf.less(x, 0.4)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval45 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.4),
+                                                               tf.less(x, 0.45)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval50 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.45),
+                                                               tf.less(x, 0.5)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval55 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.5),
+                                                               tf.less(x, 0.55)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval60 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.55),
+                                                               tf.less(x, 0.6)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval65 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.6),
+                                                               tf.less(x, 0.65)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval70 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.65),
+                                                               tf.less(x, 0.7)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval75 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.7),
+                                                               tf.less(x, 0.75)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval80 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.75),
+                                                               tf.less(x, 0.8)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval85 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.8),
+                                                               tf.less(x, 0.85)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval90 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.85),
+                                                               tf.less(x, 0.9)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval95 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.9),
+                                                               tf.less(x, 0.95)), dtype=tf.dtypes.int8)).numpy().tolist()
+        interval100 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.95),
+                                                               tf.less_equal(x, 1)), dtype=tf.dtypes.int8)).numpy().tolist()
+
+        assert isinstance(interval05, int) and isinstance(interval10, int) and isinstance(interval15, int) and \
+               isinstance(interval20, int) and isinstance(interval25, int) and isinstance(interval30, int) and \
+               isinstance(interval35, int) and isinstance(interval40, int) and isinstance(interval45, int) and \
+               isinstance(interval50, int) and isinstance(interval55, int) and isinstance(interval60, int) and \
+               isinstance(interval65, int) and isinstance(interval70, int) and isinstance(interval75, int) and \
+               isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
+               isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
+
+        self.interval_dict["[0-0.05)"] += interval05
+        self.interval_dict["[0.05-0.1)"] += interval10
+        self.interval_dict["[0.1-0.15)"] += interval15
+        self.interval_dict["[0.15-0.2)"] += interval20
+        self.interval_dict["[0.2-0.25)"] += interval25
+        self.interval_dict["[0.25-0.3)"] += interval30
+        self.interval_dict["[0.3-0.35)"] += interval35
+        self.interval_dict["[0.35-0.4)"] += interval40
+        self.interval_dict["[0.4-0.45)"] += interval45
+        self.interval_dict["[0.45-0.5)"] += interval50
+        self.interval_dict["[0.5-0.55)"] += interval55
+        self.interval_dict["[0.55-0.6)"] += interval60
+        self.interval_dict["[0.6-0.65)"] += interval65
+        self.interval_dict["[0.65-0.7)"] += interval70
+        self.interval_dict["[0.7-0.75)"] += interval75
+        self.interval_dict["[0.75-0.8)"] += interval80
+        self.interval_dict["[0.8-0.85)"] += interval85
+        self.interval_dict["[0.85-0.9)"] += interval90
+        self.interval_dict["[0.9-0.95)"] += interval95
+        self.interval_dict["[0.95-1]"] += interval100
+        self.interval_dict["Counter"] += (x.shape[0] * x.shape[1] * x.shape[2])  # this is the number of elements in the tensor.
+        # divide the interval count by the number of elements (count) to get the proportion that are within an interval.
+
+    def _get_qualitative_probe_data(self, nm_hidden_states):
+        # nm_hidden_states.shape == (batch_size, seq_len, hdim)
+        # nm_hidden_states.shape == (batch_size, seq_len, hdim)
+
+        assert nm_hidden_states.shape[1] == len(self.interval_dict_list)
+
+        for i in range(len(self.interval_dict_list)):
+
+            x = tf.squeeze(nm_hidden_states[:,i,:])  # this is for readability below
+            assert len(x.shape) == 2, f"x should have 3 dimensions, got {len(x.shape)}!"
+
+            interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
+                                                                   tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval10 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.05),
+                                                                   tf.less(x, 0.1)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval15 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.1),
+                                                                   tf.less(x, 0.15)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval20 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.15),
+                                                                   tf.less(x, 0.2)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval25 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.2),
+                                                                   tf.less(x, 0.25)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval30 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.25),
+                                                                   tf.less(x, 0.3)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval35 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.3),
+                                                                   tf.less(x, 0.35)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval40 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.35),
+                                                                   tf.less(x, 0.4)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval45 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.4),
+                                                                   tf.less(x, 0.45)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval50 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.45),
+                                                                   tf.less(x, 0.5)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval55 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.5),
+                                                                   tf.less(x, 0.55)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval60 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.55),
+                                                                   tf.less(x, 0.6)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval65 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.6),
+                                                                   tf.less(x, 0.65)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval70 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.65),
+                                                                   tf.less(x, 0.7)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval75 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.7),
+                                                                   tf.less(x, 0.75)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval80 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.75),
+                                                                   tf.less(x, 0.8)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval85 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.8),
+                                                                   tf.less(x, 0.85)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval90 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.85),
+                                                                   tf.less(x, 0.9)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval95 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.9),
+                                                                   tf.less(x, 0.95)), dtype=tf.dtypes.int8)).numpy().tolist()
+            interval100 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.95),
+                                                                    tf.less_equal(x, 1)), dtype=tf.dtypes.int8)).numpy().tolist()
+
+            assert isinstance(interval05, int) and isinstance(interval10, int) and isinstance(interval15, int) and \
+                   isinstance(interval20, int) and isinstance(interval25, int) and isinstance(interval30, int) and \
+                   isinstance(interval35, int) and isinstance(interval40, int) and isinstance(interval45, int) and \
+                   isinstance(interval50, int) and isinstance(interval55, int) and isinstance(interval60, int) and \
+                   isinstance(interval65, int) and isinstance(interval70, int) and isinstance(interval75, int) and \
+                   isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
+                   isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
+
+            self.interval_dict_list[i]["[0-0.05)"] += interval05
+            self.interval_dict_list[i]["[0.05-0.1)"] += interval10
+            self.interval_dict_list[i]["[0.1-0.15)"] += interval15
+            self.interval_dict_list[i]["[0.15-0.2)"] += interval20
+            self.interval_dict_list[i]["[0.2-0.25)"] += interval25
+            self.interval_dict_list[i]["[0.25-0.3)"] += interval30
+            self.interval_dict_list[i]["[0.3-0.35)"] += interval35
+            self.interval_dict_list[i]["[0.35-0.4)"] += interval40
+            self.interval_dict_list[i]["[0.4-0.45)"] += interval45
+            self.interval_dict_list[i]["[0.45-0.5)"] += interval50
+            self.interval_dict_list[i]["[0.5-0.55)"] += interval55
+            self.interval_dict_list[i]["[0.55-0.6)"] += interval60
+            self.interval_dict_list[i]["[0.6-0.65)"] += interval65
+            self.interval_dict_list[i]["[0.65-0.7)"] += interval70
+            self.interval_dict_list[i]["[0.7-0.75)"] += interval75
+            self.interval_dict_list[i]["[0.75-0.8)"] += interval80
+            self.interval_dict_list[i]["[0.8-0.85)"] += interval85
+            self.interval_dict_list[i]["[0.85-0.9)"] += interval90
+            self.interval_dict_list[i]["[0.9-0.95)"] += interval95
+            self.interval_dict_list[i]["[0.95-1]"] += interval100
+            self.interval_dict_list[i]["Counter"] += (x.shape[0] * x.shape[1])  # this is the number of elements in the tensor.
+            # divide the interval count by the number of elements (count) to get the proportion that are within an interval.
+
+    def save_global(self):
+        with open(self.probe_dataset_filepath, "w") as f:
+
+            f.write(f"Key\tValue\n")
+            f.write(f"[0-0.05)\t{self.interval_dict['[0-0.05)']}\n")
+            f.write(f"[0.05-0.1)\t{self.interval_dict['[0.05-0.1)']}\n")
+            f.write(f"[0.1-0.15)\t{self.interval_dict['[0.1-0.15)']}\n")
+            f.write(f"[0.15-0.2)\t{self.interval_dict['[0.15-0.2)']}\n")
+            f.write(f"[0.2-0.25)\t{self.interval_dict['[0.2-0.25)']}\n")
+            f.write(f"[0.25-0.3)\t{self.interval_dict['[0.25-0.3)']}\n")
+            f.write(f"[0.3-0.35)\t{self.interval_dict['[0.3-0.35)']}\n")
+            f.write(f"[0.35-0.4)\t{self.interval_dict['[0.35-0.4)']}\n")
+            f.write(f"[0.4-0.45)\t{self.interval_dict['[0.4-0.45)']}\n")
+            f.write(f"[0.45-0.5)\t{self.interval_dict['[0.45-0.5)']}\n")
+            f.write(f"[0.5-0.55)\t{self.interval_dict['[0.5-0.55)']}\n")
+            f.write(f"[0.55-0.6)\t{self.interval_dict['[0.55-0.6)']}\n")
+            f.write(f"[0.6-0.65)\t{self.interval_dict['[0.6-0.65)']}\n")
+            f.write(f"[0.65-0.7)\t{self.interval_dict['[0.65-0.7)']}\n")
+            f.write(f"[0.7-0.75)\t{self.interval_dict['[0.7-0.75)']}\n")
+            f.write(f"[0.75-0.8)\t{self.interval_dict['[0.75-0.8)']}\n")
+            f.write(f"[0.8-0.85)\t{self.interval_dict['[0.8-0.85)']}\n")
+            f.write(f"[0.85-0.9)\t{self.interval_dict['[0.85-0.9)']}\n")
+            f.write(f"[0.9-0.95)\t{self.interval_dict['[0.9-0.95)']}\n")
+            f.write(f"[0.95-1]\t{self.interval_dict['[0.95-1]']}\n")
+            f.write(f"Counter\t{self.interval_dict['Counter']}\n")
+
+    def save_qualitative(self):
+        with open(self.probe_dataset_filepath, "w") as f:
+
+            f.write(f"Key\tValue\tPosition (starting from 1)\n")
+            for i in range(self.config.max_seq_len):
+
+                f.write(f"[0-0.05)\t{self.interval_dict_list[i]['[0-0.05)']}\t{i+1}\n")
+                f.write(f"[0.05-0.1)\t{self.interval_dict_list[i]['[0.05-0.1)']}\t{i+1}\n")
+                f.write(f"[0.1-0.15)\t{self.interval_dict_list[i]['[0.1-0.15)']}\t{i+1}\n")
+                f.write(f"[0.15-0.2)\t{self.interval_dict_list[i]['[0.15-0.2)']}\t{i+1}\n")
+                f.write(f"[0.2-0.25)\t{self.interval_dict_list[i]['[0.2-0.25)']}\t{i+1}\n")
+                f.write(f"[0.25-0.3)\t{self.interval_dict_list[i]['[0.25-0.3)']}\t{i+1}\n")
+                f.write(f"[0.3-0.35)\t{self.interval_dict_list[i]['[0.3-0.35)']}\t{i+1}\n")
+                f.write(f"[0.35-0.4)\t{self.interval_dict_list[i]['[0.35-0.4)']}\t{i+1}\n")
+                f.write(f"[0.4-0.45)\t{self.interval_dict_list[i]['[0.4-0.45)']}\t{i+1}\n")
+                f.write(f"[0.45-0.5)\t{self.interval_dict_list[i]['[0.45-0.5)']}\t{i+1}\n")
+                f.write(f"[0.5-0.55)\t{self.interval_dict_list[i]['[0.5-0.55)']}\t{i+1}\n")
+                f.write(f"[0.55-0.6)\t{self.interval_dict_list[i]['[0.55-0.6)']}\t{i+1}\n")
+                f.write(f"[0.6-0.65)\t{self.interval_dict_list[i]['[0.6-0.65)']}\t{i+1}\n")
+                f.write(f"[0.65-0.7)\t{self.interval_dict_list[i]['[0.65-0.7)']}\t{i+1}\n")
+                f.write(f"[0.7-0.75)\t{self.interval_dict_list[i]['[0.7-0.75)']}\t{i+1}\n")
+                f.write(f"[0.75-0.8)\t{self.interval_dict_list[i]['[0.75-0.8)']}\t{i+1}\n")
+                f.write(f"[0.8-0.85)\t{self.interval_dict_list[i]['[0.8-0.85)']}\t{i+1}\n")
+                f.write(f"[0.85-0.9)\t{self.interval_dict_list[i]['[0.85-0.9)']}\t{i+1}\n")
+                f.write(f"[0.9-0.95)\t{self.interval_dict_list[i]['[0.9-0.95)']}\t{i+1}\n")
+                f.write(f"[0.95-1]\t{self.interval_dict_list[i]['[0.95-1]']}\t{i+1}\n")
+                f.write(f"Counter\t{self.interval_dict_list[i]['Counter']}\t{i+1}\n")
+
     def call(
         self,
         hidden_states: tf.Tensor,
@@ -630,7 +865,12 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 if self.config.is_diagnostics: print(f"Apply sigmoid function to the output of the gating block "
                                                      f"and element-wise multiply with the output of the "
                                                      f"previous bert layer")
-                input_hidden_states = tf.math.sigmoid(input_hidden_states) * hidden_states
+                nm_hidden_states = tf.math.sigmoid(input_hidden_states)
+                input_hidden_states = nm_hidden_states * hidden_states
+                if self.config.is_global_probe_dataset:
+                    self._get_global_probe_data(nm_hidden_states)
+                if self.config.is_qualitative_probe:
+                    self._get_qualitative_probe_data(nm_hidden_states)
                 apply_sigmoid = True
             elif gate and not self.config.nm_gating:
                 if self.config.is_diagnostics: print(f"No element-wise multiplication is applied; the gating "

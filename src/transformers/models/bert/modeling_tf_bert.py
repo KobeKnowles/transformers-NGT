@@ -639,14 +639,13 @@ class TFBertEncoder(tf.keras.layers.Layer):
 
     def _get_qualitative_probe_data(self, nm_hidden_states):
         # nm_hidden_states.shape == (batch_size, seq_len, hdim)
-        # nm_hidden_states.shape == (batch_size, seq_len, hdim)
 
         assert nm_hidden_states.shape[1] == len(self.interval_dict_list)
 
         for i in range(len(self.interval_dict_list)):
 
             x = tf.squeeze(nm_hidden_states[:,i,:])  # this is for readability below
-            assert len(x.shape) == 2, f"x should have 3 dimensions, got {len(x.shape)}!"
+            assert len(x.shape) == 2, f"x should have 2 dimensions, got {len(x.shape)}!"
 
             interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
                                                                    tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
@@ -746,7 +745,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             f.write(f"[0.95-1]\t{self.interval_dict['[0.95-1]']}\n")
             f.write(f"Counter\t{self.interval_dict['Counter']}\n")
 
-    def save_qualitative(self):
+    def save_qualitative(self, token_list):
         with open(self.probe_dataset_filepath, "w") as f:
 
             f.write(f"Key\tValue\tPosition (starting from 1)\n")
@@ -773,6 +772,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 f.write(f"[0.9-0.95)\t{self.interval_dict_list[i]['[0.9-0.95)']}\t{i+1}\n")
                 f.write(f"[0.95-1]\t{self.interval_dict_list[i]['[0.95-1]']}\t{i+1}\n")
                 f.write(f"Counter\t{self.interval_dict_list[i]['Counter']}\t{i+1}\n")
+                f.write(f"Token_list\t{token_list}\n")
 
     def call(
         self,

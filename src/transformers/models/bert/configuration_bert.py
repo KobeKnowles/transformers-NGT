@@ -170,6 +170,8 @@ class BertConfig(PretrainedConfig):
         global_filepath="",
         is_qualitative_probe=False,
         qualitative_filepath="",
+        is_global_before_and_after=False,
+        global_before_after_filepath="",
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -203,6 +205,8 @@ class BertConfig(PretrainedConfig):
         self.num_aux_toks = num_aux_toks
         self.is_global_probe_dataset = is_global_probe_dataset
         self.global_filepath = global_filepath
+        self.is_global_before_and_after = is_global_before_and_after
+        self.global_before_after_filepath = global_before_after_filepath
         self.is_qualitative_probe = is_qualitative_probe
         self.qualitative_filepath = qualitative_filepath
 
@@ -216,8 +220,9 @@ class BertConfig(PretrainedConfig):
         assert self.gating_block_start_position != self.gating_block_middle_position, f"The start position and middle position" \
                                                                                     f"can't be equal."
 
-        assert not (self.is_global_probe_dataset and self.is_qualitative_probe), f"Both of is_global_probe_dataset and " \
-                                                                               f"is_qualative_probe should not be True"
+        assert not (self.is_global_probe_dataset and self.is_qualitative_probe) and \
+               not (self.is_qualitative_probe and self.is_global_before_and_after), \
+            f"Both of is_global_probe_dataset and is_qualative_probe should not be True"
 
 
 class BertOnnxConfig(OnnxConfig):

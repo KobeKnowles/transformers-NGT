@@ -15,6 +15,7 @@
 # limitations under the License.
 """ TF 2.0 BERT model."""
 
+import json # added to save numpy object in a dictionary.
 import math
 import warnings
 from dataclasses import dataclass
@@ -637,6 +638,16 @@ class TFBertEncoder(tf.keras.layers.Layer):
         self.interval_dict["Counter"] += (x.shape[0] * x.shape[1] * x.shape[2])  # this is the number of elements in the tensor.
         # divide the interval count by the number of elements (count) to get the proportion that are within an interval.
 
+    def _get_global_before_and_after(self, before, nm_gating, after, pad_tok_start_index: int):
+        #TODO need a good way to get pad_tok_start_index (preferrably without modifying the data loaders.
+        before, nm_gating, after = before[:,pad_tok_start_index:,:].numpy(), \
+                                   nm_gating[:,pad_tok_start_index:,:].numpy(), \
+                                   after[:,pad_tok_start_index,:].numpy()
+        dict_ = {"before":before, "nm_gating":nm_gating, "after":after}
+        with open(self.config.global_before_after_filepath, "wb") as f:
+            json.dump(dict_, f)
+            f.write('\n')
+
     def _get_qualitative_probe_data(self, nm_hidden_states):
         # nm_hidden_states.shape == (batch_size, seq_len, hdim)
 
@@ -866,11 +877,14 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"and element-wise multiply with the output of the "
                                                      f"previous bert layer")
                 nm_hidden_states = tf.math.sigmoid(input_hidden_states)
-                input_hidden_states = nm_hidden_states * hidden_states
+                input_hidden_states = nm_hidden_states * hidden_states # hidden_states is the either the embedding layer or the output of the previous layer.
                 if self.config.is_global_probe_dataset:
                     self._get_global_probe_data(nm_hidden_states)
-                if self.config.is_qualitative_probe:
+                elif self.config.is_qualitative_probe:
                     self._get_qualitative_probe_data(nm_hidden_states)
+                elif self.config.is_global_before_and_after:
+                    self._get_global_before_and_after(before=hidden_states, nm_gating=nm_hidden_states,
+                                                      after=input_hidden_states)
                 apply_sigmoid = True
             elif gate and not self.config.nm_gating:
                 if self.config.is_diagnostics: print(f"No element-wise multiplication is applied; the gating "

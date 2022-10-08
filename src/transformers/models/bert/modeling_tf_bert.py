@@ -560,12 +560,18 @@ class TFBertEncoder(tf.keras.layers.Layer):
             # note that the aux tok positions are not included in this. Also, that some positions are PAD tokens that won't be filled in.
             self.probe_dataset_filepath = self.config.qualitative_filepath
 
-    def _get_global_probe_data(self, nm_hidden_states):
-        # nm_hidden_states.shape == (batch_size, seq_len, hdim)
-        x = nm_hidden_states # this is for readability below
+    def remove_pad_tok_positions(self, hidden_states, input_ids, pad_tok_id):
+        #hidden_states.shape == (seq_len, hdim)
+        #input_ids = (seq_len)
+        pos = None
+        for i in range(len(input_ids)):
+            if input_ids[i] == pad_tok_id:
+                pos = i
+                break
+        if pos is not None: return hidden_states[pos,:]
+        else: return hidden_states # i.e., do nothing.
 
-        assert len(x.shape) == 3, f"x should have 3 dimensions, got {len(x.shape)}!"
-
+    def _get_intervals(self, x):
         interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
                                                                tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
         interval10 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.05),
@@ -605,7 +611,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         interval95 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.9),
                                                                tf.less(x, 0.95)), dtype=tf.dtypes.int8)).numpy().tolist()
         interval100 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.95),
-                                                               tf.less_equal(x, 1)), dtype=tf.dtypes.int8)).numpy().tolist()
+                                                                tf.less_equal(x, 1)), dtype=tf.dtypes.int8)).numpy().tolist()
 
         assert isinstance(interval05, int) and isinstance(interval10, int) and isinstance(interval15, int) and \
                isinstance(interval20, int) and isinstance(interval25, int) and isinstance(interval30, int) and \
@@ -615,89 +621,91 @@ class TFBertEncoder(tf.keras.layers.Layer):
                isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
                isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
 
-        self.interval_dict["[0-0.05)"] += interval05
-        self.interval_dict["[0.05-0.1)"] += interval10
-        self.interval_dict["[0.1-0.15)"] += interval15
-        self.interval_dict["[0.15-0.2)"] += interval20
-        self.interval_dict["[0.2-0.25)"] += interval25
-        self.interval_dict["[0.25-0.3)"] += interval30
-        self.interval_dict["[0.3-0.35)"] += interval35
-        self.interval_dict["[0.35-0.4)"] += interval40
-        self.interval_dict["[0.4-0.45)"] += interval45
-        self.interval_dict["[0.45-0.5)"] += interval50
-        self.interval_dict["[0.5-0.55)"] += interval55
-        self.interval_dict["[0.55-0.6)"] += interval60
-        self.interval_dict["[0.6-0.65)"] += interval65
-        self.interval_dict["[0.65-0.7)"] += interval70
-        self.interval_dict["[0.7-0.75)"] += interval75
-        self.interval_dict["[0.75-0.8)"] += interval80
-        self.interval_dict["[0.8-0.85)"] += interval85
-        self.interval_dict["[0.85-0.9)"] += interval90
-        self.interval_dict["[0.9-0.95)"] += interval95
-        self.interval_dict["[0.95-1]"] += interval100
-        self.interval_dict["Counter"] += (x.shape[0] * x.shape[1] * x.shape[2])  # this is the number of elements in the tensor.
-        # divide the interval count by the number of elements (count) to get the proportion that are within an interval.
+        return interval05, interval10, interval15, interval20, interval25, interval30, \
+               interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval75, \
+               interval80, interval85, interval90, interval95, interval100
 
-    def _get_global_before_and_after(self, before, nm_gating, after, pad_tok_start_index: int):
-        #TODO need a good way to get pad_tok_start_index (preferrably without modifying the data loaders.
-        before, nm_gating, after = before[:,pad_tok_start_index:,:].numpy(), \
-                                   nm_gating[:,pad_tok_start_index:,:].numpy(), \
-                                   after[:,pad_tok_start_index,:].numpy()
-        dict_ = {"before":before, "nm_gating":nm_gating, "after":after}
-        with open(self.config.global_before_after_filepath, "wb") as f:
-            json.dump(dict_, f)
-            f.write('\n')
+    def _get_global_probe_data(self, nm_hidden_states, input_ids, pad_tok_id):
+        # nm_hidden_states.shape == (batch_size, seq_len, hdim)
+        assert nm_hidden_states
+        for i in range(nm_hidden_states.shape[0]): # iterate through the batch size.
+            x = remove_pad_tok_positions(self, hidden_states=tf.squeeze(nm_hidden_states[i,:,:]),
+                                         input_ids=input_ids, pad_tok_id=pad_tok_id)
+
+            assert len(x.shape) == 2, f"x should have 2 dimensions, got {len(x.shape)}!"
+
+            interval05, interval10, interval15, interval20, interval25, interval30, \
+            interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval75, \
+            interval80, interval85, interval90, interval95, interval100 = self._get_intervals(x=x)
+
+            assert isinstance(interval05, int) and isinstance(interval10, int) and isinstance(interval15, int) and \
+                   isinstance(interval20, int) and isinstance(interval25, int) and isinstance(interval30, int) and \
+                   isinstance(interval35, int) and isinstance(interval40, int) and isinstance(interval45, int) and \
+                   isinstance(interval50, int) and isinstance(interval55, int) and isinstance(interval60, int) and \
+                   isinstance(interval65, int) and isinstance(interval70, int) and isinstance(interval75, int) and \
+                   isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
+                   isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
+
+            self.interval_dict["[0-0.05)"] += interval05
+            self.interval_dict["[0.05-0.1)"] += interval10
+            self.interval_dict["[0.1-0.15)"] += interval15
+            self.interval_dict["[0.15-0.2)"] += interval20
+            self.interval_dict["[0.2-0.25)"] += interval25
+            self.interval_dict["[0.25-0.3)"] += interval30
+            self.interval_dict["[0.3-0.35)"] += interval35
+            self.interval_dict["[0.35-0.4)"] += interval40
+            self.interval_dict["[0.4-0.45)"] += interval45
+            self.interval_dict["[0.45-0.5)"] += interval50
+            self.interval_dict["[0.5-0.55)"] += interval55
+            self.interval_dict["[0.55-0.6)"] += interval60
+            self.interval_dict["[0.6-0.65)"] += interval65
+            self.interval_dict["[0.65-0.7)"] += interval70
+            self.interval_dict["[0.7-0.75)"] += interval75
+            self.interval_dict["[0.75-0.8)"] += interval80
+            self.interval_dict["[0.8-0.85)"] += interval85
+            self.interval_dict["[0.85-0.9)"] += interval90
+            self.interval_dict["[0.9-0.95)"] += interval95
+            self.interval_dict["[0.95-1]"] += interval100
+            self.interval_dict["Counter"] += (x.shape[0] * x.shape[1])  # this is the number of elements in the tensor.
+            # divide the interval count by the number of elements (count) to get the proportion that are within an interval.
+
+    def _get_global_before_and_after(self, before, nm_gating, after, input_ids, pad_tok_id):
+        # with input_ids, the pad token position will be extractable.
+        assert len(before.shape) == 3 and len(nm_gating.shape) == 3 and len(after.shape) == 3, f"All of before, " \
+                                                                                               f"nm_gating, and after " \
+                                                                                               f"should have 3 dimensions"
+        #assert before.shape[0] == 1 and nm_gating.shape[0] == 1 and after.shape[0] == 1, f"The batch size should be 1, " \
+        #                                                                                 f"got {before.shape[0]}!"
+        for i in range(before.shape[0]):
+
+            before = remove_pad_tok_positions(self, hidden_states=tf.squeeze(before[i, :, :]),
+                                              input_ids=input_ids, pad_tok_id=pad_tok_id).numpy()
+            nm_gating = remove_pad_tok_positions(self, hidden_states=tf.squeeze(nm_gating[i, :, :]),
+                                              input_ids=input_ids, pad_tok_id=pad_tok_id).numpy()
+            after = remove_pad_tok_positions(self, hidden_states=tf.squeeze(after[i, :, :]),
+                                              input_ids=input_ids, pad_tok_id=pad_tok_id).numpy()
+
+            dict_ = {"before":before, "nm_gating":nm_gating, "after":after, "input_ids":input_ids}
+            with open(self.config.global_before_after_filepath, "wb") as f:
+                json.dump(dict_, f)
+                f.write('\n')
 
     def _get_qualitative_probe_data(self, nm_hidden_states):
         # nm_hidden_states.shape == (batch_size, seq_len, hdim)
-
+        # note: here we assume that there are no pad tokens.
+        assert nm_hidden_states.shape[0] == 1, f"For a qualitative probe there is a strict limit of a batch size of 1," \
+                                               f"got {nm_hidden_states.shape[0]}!"
         assert nm_hidden_states.shape[1] == len(self.interval_dict_list)
 
         for i in range(len(self.interval_dict_list)):
 
             x = tf.squeeze(nm_hidden_states[:,i,:])  # this is for readability below
-            assert len(x.shape) == 2, f"x should have 2 dimensions, got {len(x.shape)}!"
 
-            interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
-                                                                   tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval10 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.05),
-                                                                   tf.less(x, 0.1)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval15 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.1),
-                                                                   tf.less(x, 0.15)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval20 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.15),
-                                                                   tf.less(x, 0.2)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval25 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.2),
-                                                                   tf.less(x, 0.25)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval30 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.25),
-                                                                   tf.less(x, 0.3)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval35 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.3),
-                                                                   tf.less(x, 0.35)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval40 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.35),
-                                                                   tf.less(x, 0.4)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval45 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.4),
-                                                                   tf.less(x, 0.45)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval50 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.45),
-                                                                   tf.less(x, 0.5)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval55 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.5),
-                                                                   tf.less(x, 0.55)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval60 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.55),
-                                                                   tf.less(x, 0.6)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval65 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.6),
-                                                                   tf.less(x, 0.65)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval70 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.65),
-                                                                   tf.less(x, 0.7)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval75 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.7),
-                                                                   tf.less(x, 0.75)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval80 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.75),
-                                                                   tf.less(x, 0.8)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval85 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.8),
-                                                                   tf.less(x, 0.85)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval90 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.85),
-                                                                   tf.less(x, 0.9)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval95 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.9),
-                                                                   tf.less(x, 0.95)), dtype=tf.dtypes.int8)).numpy().tolist()
-            interval100 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.95),
-                                                                    tf.less_equal(x, 1)), dtype=tf.dtypes.int8)).numpy().tolist()
+            assert len(x.shape) == 1, f"x should have 1 dimension, got {len(x.shape)}!"
+
+            interval05, interval10, interval15, interval20, interval25, interval30, \
+            interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval75, \
+            interval80, interval85, interval90, interval95, interval100 = self._get_intervals(x=x)
 
             assert isinstance(interval05, int) and isinstance(interval10, int) and isinstance(interval15, int) and \
                    isinstance(interval20, int) and isinstance(interval25, int) and isinstance(interval30, int) and \
@@ -798,6 +806,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
         output_hidden_states: bool,
         return_dict: bool,
         training: bool = False,
+        input_ids: Optional[TFModelInputType] = None,
+        pad_tok_id: Optional[int] = None,
     ) -> Union[TFBaseModelOutputWithPastAndCrossAttentions, Tuple[tf.Tensor]]:
         all_hidden_states = () if output_hidden_states else None
         all_attentions = () if output_attentions else None
@@ -879,12 +889,13 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 nm_hidden_states = tf.math.sigmoid(input_hidden_states)
                 input_hidden_states = nm_hidden_states * hidden_states # hidden_states is the either the embedding layer or the output of the previous layer.
                 if self.config.is_global_probe_dataset:
-                    self._get_global_probe_data(nm_hidden_states)
+                    self._get_global_probe_data(nm_hidden_states, input_ids=input_ids, pad_tok_id=pad_tok_id)
                 elif self.config.is_qualitative_probe:
                     self._get_qualitative_probe_data(nm_hidden_states)
                 elif self.config.is_global_before_and_after:
                     self._get_global_before_and_after(before=hidden_states, nm_gating=nm_hidden_states,
-                                                      after=input_hidden_states)
+                                                      after=input_hidden_states, input_ids=input_ids,
+                                                      pad_tok_id=pad_tok_id)
                 apply_sigmoid = True
             elif gate and not self.config.nm_gating:
                 if self.config.is_diagnostics: print(f"No element-wise multiplication is applied; the gating "
@@ -1282,6 +1293,7 @@ class TFBertMainLayer(tf.keras.layers.Layer):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
         training: bool = False,
+        pad_tok_id: Optional[int] = None,
     ) -> Union[TFBaseModelOutputWithPoolingAndCrossAttentions, Tuple[tf.Tensor]]:
 
         if not self.config.is_decoder:
@@ -1404,6 +1416,8 @@ class TFBertMainLayer(tf.keras.layers.Layer):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             training=training,
+            input_ids=input_ids, #input_ids: Optional[TFModelInputType] = None,
+            pad_tok_id=pad_tok_id,
         )
 
         sequence_output = encoder_outputs[0]
@@ -1613,6 +1627,7 @@ class TFBertModel(TFBertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
         training: Optional[bool] = False,
+        pad_token_id: Optional[int] = None,
     ) -> Union[TFBaseModelOutputWithPoolingAndCrossAttentions, Tuple[tf.Tensor]]:
         r"""
         encoder_hidden_states  (`tf.Tensor` of shape `(batch_size, sequence_length, hidden_size)`, *optional*):
@@ -1650,6 +1665,7 @@ class TFBertModel(TFBertPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             training=training,
+            pad_token_id=pad_token_id,
         )
         # get the prediction here for the [CLS] token position.
         #print(f"last_hidden_state shape check: {outputs.last_hidden_state.shape}")

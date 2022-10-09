@@ -1629,7 +1629,7 @@ class TFBertModel(TFBertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
         training: Optional[bool] = False,
-        pad_token_id: Optional[int] = None,
+        pad_tok_id: Optional[int] = None,
     ) -> Union[TFBaseModelOutputWithPoolingAndCrossAttentions, Tuple[tf.Tensor]]:
         r"""
         encoder_hidden_states  (`tf.Tensor` of shape `(batch_size, sequence_length, hidden_size)`, *optional*):
@@ -1667,7 +1667,7 @@ class TFBertModel(TFBertPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             training=training,
-            pad_token_id=pad_token_id,
+            pad_tok_id=pad_tok_id,
         )
         # get the prediction here for the [CLS] token position.
         #print(f"last_hidden_state shape check: {outputs.last_hidden_state.shape}")

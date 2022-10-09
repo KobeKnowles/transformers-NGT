@@ -695,7 +695,9 @@ class TFBertEncoder(tf.keras.layers.Layer):
         # note: here we assume that there are no pad tokens.
         assert nm_hidden_states.shape[0] == 1, f"For a qualitative probe there is a strict limit of a batch size of 1," \
                                                f"got {nm_hidden_states.shape[0]}!"
-        assert nm_hidden_states.shape[1] == len(self.interval_dict_list)
+        #assert nm_hidden_states.shape[1] == len(self.interval_dict_list) # this is not being done becuase there will be no pad tokens to pad to this length.
+        assert len(nm_hidden_states.shape) == 3, f"nm_hideen_states should have 3 dimensions, " \
+                                                 f"got {len(nm_hidden_states.shape)}!"
 
         for i in range(len(self.interval_dict_list)):
 
@@ -712,8 +714,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
                    isinstance(interval35, int) and isinstance(interval40, int) and isinstance(interval45, int) and \
                    isinstance(interval50, int) and isinstance(interval55, int) and isinstance(interval60, int) and \
                    isinstance(interval65, int) and isinstance(interval70, int) and isinstance(interval75, int) and \
-                   isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
-                   isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
+                   isinstance(interval80, int) and isinstance(interval85, int) and isinstance(interval90, int) and \
+                   isinstance(interval95, int) and isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
 
             self.interval_dict_list[i]["[0-0.05)"] += interval05
             self.interval_dict_list[i]["[0.05-0.1)"] += interval10
@@ -735,7 +737,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             self.interval_dict_list[i]["[0.85-0.9)"] += interval90
             self.interval_dict_list[i]["[0.9-0.95)"] += interval95
             self.interval_dict_list[i]["[0.95-1]"] += interval100
-            self.interval_dict_list[i]["Counter"] += (x.shape[0] * x.shape[1])  # this is the number of elements in the tensor.
+            self.interval_dict_list[i]["Counter"] += x.shape[0]  # this is the number of elements in the tensor.
             # divide the interval count by the number of elements (count) to get the proportion that are within an interval.
 
     def save_global(self):

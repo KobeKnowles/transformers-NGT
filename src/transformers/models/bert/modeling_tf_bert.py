@@ -560,6 +560,26 @@ class TFBertEncoder(tf.keras.layers.Layer):
             # note that the aux tok positions are not included in this. Also, that some positions are PAD tokens that won't be filled in.
             self.probe_dataset_filepath = self.config.qualitative_filepath
 
+    def reset_interval_dict(self):
+        if self.config.is_global_probe_dataset:
+            self.interval_dict = {"[0-0.05)": 0, "[0.05-0.1)": 0, "[0.1-0.15)": 0, "[0.15-0.2)": 0,
+                                  "[0.2-0.25)": 0, "[0.25-0.3)": 0, "[0.3-0.35)": 0, "[0.35-0.4)": 0,
+                                  "[0.4-0.45)": 0, "[0.45-0.5)": 0, "[0.5-0.55)": 0, "[0.55-0.6)": 0,
+                                  "[0.6-0.65)": 0, "[0.65-0.7)": 0, "[0.7-0.75)": 0, "[0.75-0.8)": 0,
+                                  "[0.8-0.85)": 0, "[0.85-0.9)": 0, "[0.9-0.95)": 0, "[0.95-1]": 0,
+                                  "Counter": 0}
+            self.probe_dataset_filepath = self.config.global_filepath
+        if self.config.is_qualitative_probe:
+            print(f"Note that for a qualative probe only one example at a time is supported (i.e., a batch size of 1).")
+            self.interval_dict_list = [{"[0-0.05)": 0, "[0.05-0.1)": 0, "[0.1-0.15)": 0, "[0.15-0.2)": 0,
+                                        "[0.2-0.25)": 0, "[0.25-0.3)": 0, "[0.3-0.35)": 0, "[0.35-0.4)": 0,
+                                        "[0.4-0.45)": 0, "[0.45-0.5)": 0, "[0.5-0.55)": 0, "[0.55-0.6)": 0,
+                                        "[0.6-0.65)": 0, "[0.65-0.7)": 0, "[0.7-0.75)": 0, "[0.75-0.8)": 0,
+                                        "[0.8-0.85)": 0, "[0.85-0.9)": 0, "[0.9-0.95)": 0, "[0.95-1]": 0,
+                                        "Counter": 0} for _ in range(self.config.max_seq_len)]
+            # note that the aux tok positions are not included in this. Also, that some positions are PAD tokens that won't be filled in.
+            self.probe_dataset_filepath = self.config.qualitative_filepath
+
     def remove_pad_tok_positions(self, hidden_states, input_ids, pad_tok_id):
         #hidden_states.shape == (seq_len, hdim)
         #input_ids = (seq_len)

@@ -572,6 +572,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         else: return hidden_states # i.e., do nothing.
 
     def _get_intervals(self, x):
+
         interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
                                                                tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
         interval10 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.05),
@@ -622,21 +623,21 @@ class TFBertEncoder(tf.keras.layers.Layer):
                isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
 
         return interval05, interval10, interval15, interval20, interval25, interval30, \
-               interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval75, \
-               interval80, interval85, interval90, interval95, interval100
+               interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval70, \
+               interval75, interval80, interval85, interval90, interval95, interval100
 
     def _get_global_probe_data(self, nm_hidden_states, input_ids, pad_tok_id):
         # nm_hidden_states.shape == (batch_size, seq_len, hdim)
         assert len(nm_hidden_states.shape) == 3
         for i in range(nm_hidden_states.shape[0]): # iterate through the batch size.
             x = self.remove_pad_tok_positions(hidden_states=tf.squeeze(nm_hidden_states[i,:,:]),
-                                         input_ids=input_ids, pad_tok_id=pad_tok_id)
+                                              input_ids=input_ids, pad_tok_id=pad_tok_id)
 
             assert len(x.shape) == 2, f"x should have 2 dimensions, got {len(x.shape)}!"
 
             interval05, interval10, interval15, interval20, interval25, interval30, \
-            interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval75, \
-            interval80, interval85, interval90, interval95, interval100 = self._get_intervals(x=x)
+            interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval70, \
+            interval75, interval80, interval85, interval90, interval95, interval100 = self._get_intervals(x=x)
 
             assert isinstance(interval05, int) and isinstance(interval10, int) and isinstance(interval15, int) and \
                    isinstance(interval20, int) and isinstance(interval25, int) and isinstance(interval30, int) and \

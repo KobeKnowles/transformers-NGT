@@ -686,7 +686,11 @@ class TFBertEncoder(tf.keras.layers.Layer):
         assert interval05 >= 0 and interval10 >= 0 and interval15 >= 0 and interval20 >= 0 and interval25 >= 0 and \
                interval30 >= 0 and interval35 >= 0 and interval40 >= 0 and interval45 >= 0 and interval50 >= 0 and \
                interval55 >= 0 and interval60 >= 0 and interval65 >= 0 and interval70 >= 0 and interval75 >= 0 and \
-               interval80 >= 0 and interval85 >= 0 and interval90 >= 0 and interval95 >= 0 and interval100 >= 0
+               interval80 >= 0 and interval85 >= 0 and interval90 >= 0 and interval95 >= 0 and interval100 >= 0, \
+            f"{interval05} {interval10} {interval15} {interval20} {interval25} {interval30} " \
+            f"{interval35} {interval40} {interval45} {interval50} {interval55} {interval60} " \
+            f"{interval65} {interval70} {interval75} {interval80} {interval85} {interval90} " \
+            f"{interval95} {interval100}"
 
         return interval05, interval10, interval15, interval20, interval25, interval30, \
                interval35, interval40, interval45, interval50, interval55, interval60, interval65, interval70, \

@@ -641,8 +641,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
     def _get_global_probe_data(self, nm_hidden_states, input_ids, pad_tok_id):
         # nm_hidden_states.shape == (batch_size, seq_len, hdim)
         assert len(nm_hidden_states.shape) == 3
-        assert input_ids.shape[0] == nm_hidden_states.shape[0], f"The batch sizes aren't equal"
-        assert input_ids.shape[1] == nm_hidden_states.shape[1], f"The sequence length isn't equal"
+        assert input_ids.shape[0] == nm_hidden_states.shape[0], f"The batch sizes aren't equal: {input_ids.shape[0]} {nm_hidden_states.shape[0]}"
+        assert input_ids.shape[1] == nm_hidden_states.shape[1], f"The sequence length isn't equal: {input_ids.shape[1]} {nm_hidden_states.shape[1]}"
         for i in range(nm_hidden_states.shape[0]): # iterate through the batch size.
             x = self.remove_pad_tok_positions(hidden_states=tf.squeeze(nm_hidden_states[i,:,:]),
                                               input_ids=tf.squeeze(input_ids[i,:]), pad_tok_id=pad_tok_id)

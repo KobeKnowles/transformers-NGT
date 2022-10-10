@@ -563,9 +563,10 @@ class TFBertEncoder(tf.keras.layers.Layer):
     def remove_pad_tok_positions(self, hidden_states, input_ids, pad_tok_id):
         #hidden_states.shape == (seq_len, hdim)
         #input_ids = (seq_len)
+        assert (input_ids.shape == 1)
         pos = None
         for i in range(len(input_ids)):
-            print(input_ids)
+            #print(input_ids)
             if input_ids[i] == pad_tok_id:
                 pos = i
                 break

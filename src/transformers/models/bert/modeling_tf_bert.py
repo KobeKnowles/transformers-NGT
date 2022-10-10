@@ -565,6 +565,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         #input_ids = (seq_len)
         pos = None
         for i in range(len(input_ids)):
+            print(input_ids)
             if input_ids[i] == pad_tok_id:
                 pos = i
                 break

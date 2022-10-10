@@ -633,7 +633,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
         assert len(nm_hidden_states.shape) == 3
         for i in range(nm_hidden_states.shape[0]): # iterate through the batch size.
             x = self.remove_pad_tok_positions(hidden_states=tf.squeeze(nm_hidden_states[i,:,:]),
-                                              input_ids=input_ids, pad_tok_id=pad_tok_id)
+                                              input_ids=tf.squeeze(input_ids[i,:]), pad_tok_id=pad_tok_id)
 
             assert len(x.shape) == 2, f"x should have 2 dimensions, got {len(x.shape)}!"
 
@@ -682,11 +682,11 @@ class TFBertEncoder(tf.keras.layers.Layer):
         for i in range(before.shape[0]):
 
             before = self.remove_pad_tok_positions(hidden_states=tf.squeeze(before[i, :, :]),
-                                              input_ids=input_ids, pad_tok_id=pad_tok_id).numpy()
+                                              input_ids=tf.squeeze(input_ids[i,:]), pad_tok_id=pad_tok_id).numpy()
             nm_gating = self.remove_pad_tok_positions(hidden_states=tf.squeeze(nm_gating[i, :, :]),
-                                              input_ids=input_ids, pad_tok_id=pad_tok_id).numpy()
+                                              input_ids=tf.squeeze(input_ids[i,:]), pad_tok_id=pad_tok_id).numpy()
             after = self.remove_pad_tok_positions(hidden_states=tf.squeeze(after[i, :, :]),
-                                              input_ids=input_ids, pad_tok_id=pad_tok_id).numpy()
+                                              input_ids=tf.squeeze(input_ids[i,:]), pad_tok_id=pad_tok_id).numpy()
 
             dict_ = {"before":before, "nm_gating":nm_gating, "after":after, "input_ids":input_ids}
             with open(self.config.global_before_after_filepath, "wb") as f:

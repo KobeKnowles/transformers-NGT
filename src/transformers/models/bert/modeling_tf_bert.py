@@ -576,102 +576,102 @@ class TFBertEncoder(tf.keras.layers.Layer):
     def _get_intervals(self, x):
 
         interval05 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0),
-                                                               tf.less(x, 0.05)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.05)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval05.shape) == 1 and interval05.shape[0] == 1, f"intervalx.shape: {interval05}"
         #interval05.numpy().tolist()
 
         interval10 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.05),
-                                                               tf.less(x, 0.1)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.1)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval10.shape) == 1 and interval10.shape[0] == 1, f"intervalx.shape: {interval10}"
         #interval10.numpy().tolist()
 
         interval15 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.1),
-                                                               tf.less(x, 0.15)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.15)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval15.shape) == 1 and interval15.shape[0] == 1, f"intervalx.shape: {interval15}"
         #interval15.numpy().tolist()
 
         interval20 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.15),
-                                                               tf.less(x, 0.2)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.2)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval20.shape) == 1 and interval20.shape[0] == 1, f"intervalx.shape: {interval20}"
         #interval20.numpy().tolist()
 
         interval25 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.2),
-                                                               tf.less(x, 0.25)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.25)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval25.shape) == 1 and interval25.shape[0] == 1, f"intervalx.shape: {interval25}"
         #interval25.numpy().tolist()
 
         interval30 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.25),
-                                                               tf.less(x, 0.3)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.3)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval30.shape) == 1 and interval30.shape[0] == 1, f"intervalx.shape: {interval30}"
         #interval30.numpy().tolist()
 
         interval35 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.3),
-                                                               tf.less(x, 0.35)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.35)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval35.shape) == 1 and interval35.shape[0] == 1, f"intervalx.shape: {interval35}"
         #interval35.numpy().tolist()
 
         interval40 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.35),
-                                                               tf.less(x, 0.4)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.4)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval40.shape) == 1 and interval40.shape[0] == 1, f"intervalx.shape: {interval40}"
         #interval40.numpy().tolist()
 
         interval45 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.4),
-                                                               tf.less(x, 0.45)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.45)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval45.shape) == 1 and interval45.shape[0] == 1, f"intervalx.shape: {interval45}"
         #interval45.numpy().tolist()
 
         interval50 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.45),
-                                                               tf.less(x, 0.5)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.5)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval50.shape) == 1 and interval50.shape[0] == 1, f"intervalx.shape: {interval50}"
         #interval50.numpy().tolist()
 
         interval55 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.5),
-                                                               tf.less(x, 0.55)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.55)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval55.shape) == 1 and interval55.shape[0] == 1, f"intervalx.shape: {interval55}"
         #interval55.numpy().tolist()
 
         interval60 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.55),
-                                                               tf.less(x, 0.6)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.6)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval60.shape) == 1 and interval60.shape[0] == 1, f"intervalx.shape: {interval60}"
         #interval60.numpy().tolist()
 
         interval65 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.6),
-                                                               tf.less(x, 0.65)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.65)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval65.shape) == 1 and interval65.shape[0] == 1, f"intervalx.shape: {interval65}"
         #interval65.numpy().tolist()
 
         interval70 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.65),
-                                                               tf.less(x, 0.7)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.7)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval70.shape) == 1 and interval70.shape[0] == 1, f"intervalx.shape: {interval70}"
         #interval70.numpy().tolist()
 
         interval75 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.7),
-                                                               tf.less(x, 0.75)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.75)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval75.shape) == 1 and interval75.shape[0] == 1, f"intervalx.shape: {interval75}"
         #interval75.numpy().tolist()
 
         interval80 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.75),
-                                                               tf.less(x, 0.8)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.8)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval80.shape) == 1 and interval80.shape[0] == 1, f"intervalx.shape: {interval80}"
         #interval80.numpy().tolist()
 
         interval85 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.8),
-                                                               tf.less(x, 0.85)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.85)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval85.shape) == 1 and interval85.shape[0] == 1, f"intervalx.shape: {interval85}"
         #interval85.numpy().tolist()
 
         interval90 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.85),
-                                                               tf.less(x, 0.9)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.9)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval90.shape) == 1 and interval90.shape[0] == 1, f"intervalx.shape: {interval90}"
         #interval90.numpy().tolist()
 
         interval95 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.9),
-                                                               tf.less(x, 0.95)), dtype=tf.dtypes.int8))
+                                                               tf.less(x, 0.95)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval95.shape) == 1 and interval95.shape[0] == 1, f"intervalx.shape: {interval95}"
         #interval95.numpy().tolist()
 
         interval100 = tf.reduce_sum(tf.cast(tf.math.logical_and(tf.greater_equal(x, 0.95),
-                                                                tf.less_equal(x, 1)), dtype=tf.dtypes.int8))
+                                                                tf.less_equal(x, 1)), dtype=tf.dtypes.int8)).numpy().tolist()
         #assert len(interval100.shape) == 1 and interval100.shape[0] == 1, f"intervalx.shape: {interval100z}"
         #interval100.numpy().tolist()
 
@@ -712,6 +712,11 @@ class TFBertEncoder(tf.keras.layers.Layer):
                    isinstance(interval65, int) and isinstance(interval70, int) and isinstance(interval75, int) and \
                    isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
                    isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
+
+            assert interval05 + interval10 + interval15 + interval20 + interval25 + interval30 + \
+            interval35 + interval40 + interval45 + interval50 + interval55 + interval60 + interval65 + interval70 + \
+            interval75 + interval80 + interval85 + interval90 + interval95 + interval100 == x.shape[0] * x.shape[1], \
+            f"{interval05 + interval10 + interval15 + interval20 + interval25 + interval30 + interval35 + interval40 + interval45 + interval50 + interval55 + interval60 + interval65 + interval70 + interval75 + interval80 + interval85 + interval90 + interval95 + interval100} == {x.shape[0] * x.shape[1]}"
 
             self.interval_dict["[0-0.05)"] += interval05
             self.interval_dict["[0.05-0.1)"] += interval10

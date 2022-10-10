@@ -570,7 +570,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             if input_ids[i] == pad_tok_id:
                 pos = i
                 break
-        if pos is not None: return hidden_states[pos,:]
+        if pos is not None: return hidden_states[:pos,:]
         else: return hidden_states # i.e., do nothing.
 
     def _get_intervals(self, x):

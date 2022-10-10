@@ -913,12 +913,13 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 nm_hidden_states = tf.math.sigmoid(input_hidden_states)
                 input_hidden_states = nm_hidden_states * hidden_states # hidden_states is the either the embedding layer or the output of the previous layer.
                 if self.config.is_global_probe_dataset:
-                    self._get_global_probe_data(nm_hidden_states, input_ids=input_ids, pad_tok_id=pad_tok_id)
+                    self._get_global_probe_data(nm_hidden_states, input_ids=input_ids[:,self.config.num_aux_toks:],
+                                                pad_tok_id=pad_tok_id)
                 elif self.config.is_qualitative_probe:
                     self._get_qualitative_probe_data(nm_hidden_states)
                 elif self.config.is_global_before_and_after:
                     self._get_global_before_and_after(before=hidden_states, nm_gating=nm_hidden_states,
-                                                      after=input_hidden_states, input_ids=input_ids,
+                                                      after=input_hidden_states, input_ids=input_ids[:,self.config.num_aux_toks:],
                                                       pad_tok_id=pad_tok_id)
                 apply_sigmoid = True
             elif gate and not self.config.nm_gating:

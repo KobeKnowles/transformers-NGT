@@ -678,8 +678,8 @@ class TFBertEncoder(tf.keras.layers.Layer):
                    isinstance(interval35, int) and isinstance(interval40, int) and isinstance(interval45, int) and \
                    isinstance(interval50, int) and isinstance(interval55, int) and isinstance(interval60, int) and \
                    isinstance(interval65, int) and isinstance(interval70, int) and isinstance(interval75, int) and \
-                   isinstance(interval80, int) and isinstance(interval90, int) and isinstance(interval95, int) and \
-                   isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
+                   isinstance(interval80, int) and isinstance(interval85, int) and isinstance(interval90, int) and \
+                   isinstance(interval95, int) and isinstance(interval100, int), f"One of the interval counts is not an integer (int)!"
 
             assert interval05 + interval10 + interval15 + interval20 + interval25 + interval30 + \
             interval35 + interval40 + interval45 + interval50 + interval55 + interval60 + interval65 + interval70 + \
@@ -925,7 +925,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
                 hidden_states_after_gating_end = None
                 gate = True
 
-            apply_sigmoid=False
+            #apply_sigmoid=False
             if gate and self.config.nm_gating:
                 if self.config.is_diagnostics: print(f"Apply sigmoid function to the output of the gating block "
                                                      f"and element-wise multiply with the output of the "
@@ -936,12 +936,14 @@ class TFBertEncoder(tf.keras.layers.Layer):
                     self._get_global_probe_data(nm_hidden_states, input_ids=input_ids[:,self.config.num_aux_toks:],
                                                 pad_tok_id=pad_tok_id)
                 elif self.config.is_qualitative_probe:
+                    raise Exception(f"Not implemented!")
                     self._get_qualitative_probe_data(nm_hidden_states)
                 elif self.config.is_global_before_and_after:
+                    raise Exception(f"Not implemented!")
                     self._get_global_before_and_after(before=hidden_states, nm_gating=nm_hidden_states,
                                                       after=input_hidden_states, input_ids=input_ids[:,self.config.num_aux_toks:],
                                                       pad_tok_id=pad_tok_id)
-                apply_sigmoid = True
+                #apply_sigmoid = True
             elif gate and not self.config.nm_gating:
                 if self.config.is_diagnostics: print(f"No element-wise multiplication is applied; the gating "
                                                      f"block acts as additional layers.")
@@ -1139,7 +1141,7 @@ class TFBertEncoder(tf.keras.layers.Layer):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
-            # note needed because past_key_values[i] is already passed as input.
+            # not needed because past_key_values[i] is already passed as input.
             #past_key_value = past_key_values if past_key_values is not None else None
 
             layer_outputs = layer_module(

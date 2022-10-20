@@ -585,12 +585,14 @@ class TFBertEncoder(tf.keras.layers.Layer):
         #input_ids = (seq_len)
         assert len(input_ids.shape) == 1, f"Got {len(input_ids.shape)} dimensions! (input_ids.shape: {input_ids.shape})"
         assert len(hidden_states.shape) == 2, f"Got {len(hidden_states.shape)} dimensions! (hidden_states.shape: {hidden_states.shape})"
+        print(f"hidden_states.shape: {hidden_states.shape}\t input_ids.shape: {input_ids.shape}")
         pos = None
         for i in range(len(input_ids)):
             #print(input_ids)
             if input_ids[i] == pad_tok_id:
                 pos = i
                 break
+        print(f"pos: {pos}")
         if pos is not None: return hidden_states[:pos,:]
         else: return hidden_states # i.e., do nothing.
 

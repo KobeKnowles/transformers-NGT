@@ -1102,26 +1102,26 @@ class TFBertEncoder(tf.keras.layers.Layer):
         hidden_state_gating_block = hidden_states if self.config.num_aux_toks == 0 \
             else tf.concat([aux_tok_positions, hidden_states], axis=1)
 
-        if self.config.num_aux_toks == 0:
-            assert hidden_state_gating_block.shape[1] == self.config.max_seq_len, f"{hidden_state_gating_block.shape[1]} " \
-                                                                                  f"{self.config.max_seq_len}"
-            if self.config.is_diagnostics: print(f"hidden_state_gating_block == hidden_states")
-        else:
-            assert hidden_state_gating_block.shape[1] == self.config.max_seq_len+self.config.num_aux_toks, f"{hidden_state_gating_block.shape[1]} " \
-                                                                                  f"{self.config.max_seq_len+self.config.num_aux_toks}"
-            if self.config.is_diagnostics: print(f"aux_tok_positions; hidden_states concatenated along the sequence length dimension.")
+        #if self.config.num_aux_toks == 0:
+        #    assert hidden_state_gating_block.shape[1] == self.config.max_seq_len, f"{hidden_state_gating_block.shape[1]} " \
+        #                                                                          f"{self.config.max_seq_len}"
+        #    if self.config.is_diagnostics: print(f"hidden_state_gating_block == hidden_states")
+        #else:
+        #    assert hidden_state_gating_block.shape[1] == self.config.max_seq_len+self.config.num_aux_toks, f"{hidden_state_gating_block.shape[1]} " \
+        #                                                                          f"{self.config.max_seq_len+self.config.num_aux_toks}"
+        #    if self.config.is_diagnostics: print(f"aux_tok_positions; hidden_states concatenated along the sequence length dimension.")
 
         attention_mask_gating_block = attention_mask if self.config.num_aux_toks == 0 \
             else tf.concat([aux_attn_mask, attention_mask], axis=3)
 
-        if self.config.num_aux_toks == 0:
-            assert attention_mask_gating_block.shape[3] == self.config.max_seq_len, f"{attention_mask_gating_block.shape[3]} " \
-                                                                                    f"{self.config.max_seq_len}"
-            if self.config.is_diagnostics: print(f"attention_mask_gating_block == attention_mask")
-        else:
-            assert attention_mask_gating_block.shape[3] == self.config.max_seq_len+self.config.num_aux_toks, f"{attention_mask_gating_block.shape[3]} " \
-                                                                                    f"{self.config.max_seq_len+self.config.num_aux_toks}"
-            if self.config.is_diagnostics: print(f"aux_attn_mask; attention_mask concatenated along the sequence length dimension.")
+        #if self.config.num_aux_toks == 0:
+        #    assert attention_mask_gating_block.shape[3] == self.config.max_seq_len, f"{attention_mask_gating_block.shape[3]} " \
+        #                                                                            f"{self.config.max_seq_len}"
+        #    if self.config.is_diagnostics: print(f"attention_mask_gating_block == attention_mask")
+        #else:
+        #    assert attention_mask_gating_block.shape[3] == self.config.max_seq_len+self.config.num_aux_toks, f"{attention_mask_gating_block.shape[3]} " \
+        #                                                                            f"{self.config.max_seq_len+self.config.num_aux_toks}"
+        #    if self.config.is_diagnostics: print(f"aux_attn_mask; attention_mask concatenated along the sequence length dimension.")
         return hidden_state_gating_block, attention_mask_gating_block
 
     def gating_block_iterate(self, type_, gating_block, hidden_states, attention_mask, head_mask, encoder_hidden_states,

@@ -1044,10 +1044,10 @@ class TFBertEncoder(tf.keras.layers.Layer):
                                                      f"{hidden_states_after_gating_end.shape}")
                 #assert hidden_states_after_gating_end.shape[1] == self.config.max_seq_len, f"{hidden_states_after_gating_end.shape[1]} " \
                 #                                                                           f"{self.config.max_seq_len}"
-                if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
-                    print(f"Error, hidden_states_after_gating_end.shape[1] should equal self.config.max_seq_len: got "
-                          f"{hidden_states_after_gating_end.shape[1]} "
-                          f"{self.config.max_seq_len}")
+                #if not hidden_states_after_gating_end.shape[1] == self.config.max_seq_len:
+                #    print(f"Error, hidden_states_after_gating_end.shape[1] should equal self.config.max_seq_len: got "
+                #          f"{hidden_states_after_gating_end.shape[1]} "
+                #          f"{self.config.max_seq_len}")
 
             if use_cache:
                 next_decoder_cache += (layer_outputs[-1],)
